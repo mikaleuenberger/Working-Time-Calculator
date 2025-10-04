@@ -1,24 +1,18 @@
 # 📊🔢 WTCalculator – Working Time Calculator (Console)
 
-This project is intended to:
-
-- Practice the complete process from **problem analysis to implementation**
-- Apply basic **Python** programming concepts learned in the Programming Foundations module
-- Demonstrate the use of **console interaction, data validation, and file processing**
-- Produce clean, well-structured, and documented code
-- Prepare students for **teamwork and documentation** in later modules
-- Use this repository as a starting point by importing it into your own GitHub account.  
-- Work only within your own copy — do not push to the original template.  
-- Commit regularly to track your progress.
+Projektbeschrieb:
 
 # 📊🔢 TEMPLATE for documentation
-> 🚧 Please remove this paragraphs having "🚧". These are comments for preparing the documentations.
+> 
 ## 📝 Analysis
 
 **Problem**
-> 🚧 Describe the real-world problem your application solves. (Not HOW, but WHAT)
+> Für kleinere Firmen ist das Erfassen der Arbeitszeiten ein essentieller Vorgang und Software-Lösungen wie SAP sind preislich hoch angesiedelt. Mit unserer App bieten wie eine günstige Alternative. 
 
-💡 Example: In a small local pizzeria, the staff writes orders and calculates totals by hand. This causes mistakes and inconsistent orders or discounts.
+In unserer Python Appikation sollen Arbeitszeiten erfasst und ausgewertet werden können. Ein User kann Arbeitsbeginn und Arbeitsende als Uhrzeiten erfassen und die Pausen als Stunden/Minuten Input.
+Ausgewertet wird die Brutto und die Netto Arbeitszeit. Und die Monatliche Übersicht kann als Liste in der Konsole ausgegeben werden. 
+Die ausgerechneten Zeiten werden mit bestimmten Rules, die festgelegt sind, abgeglichen. Beispiele sind hier: Maximalarbeitszeiten (Max Überstundenanzahl), Einhaltung der Pausenzeit (Keine Pausen unter 30 Minuten)
+Der Mitarbeiter soll ich die Möglichkeit haben, mein Alter einmalig zu hinterlegen, damit die für mich gültigen Regeln automatisch angewendet werden.
 
 **Scenario**
 > 🚧 Describe when and how a user will use your application
