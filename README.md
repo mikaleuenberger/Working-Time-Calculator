@@ -35,7 +35,7 @@ This project is intended to:
 7. Ich möchte mich als User Authentifizieren können bei der Verwendung des Tools, mit Personalnummer oder ähnl. 
 8. Als Vorgesetzter will ich ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter.  
 9. Als minderjähriger Mitarbeiter möchte ich keine Nacht- oder Wochenendarbeit erfassen können, damit die Jugendarbeitsschutzgesetze automatisch eingehalten werden
-
+ewrwer
 **Use cases:**
 -	Name des Users eingeben
 -	Zeiteingabe
