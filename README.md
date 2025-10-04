@@ -11,8 +11,8 @@ Projektbeschrieb:
 
 In unserer Python Appikation sollen Arbeitszeiten erfasst und ausgewertet werden können. Ein User kann Arbeitsbeginn und Arbeitsende als Uhrzeiten erfassen und die Pausen als Stunden/Minuten Input.
 Ausgewertet wird die Brutto und die Netto Arbeitszeit. Und die Monatliche Übersicht kann als Liste in der Konsole ausgegeben werden. 
-Die ausgerechneten Zeiten werden mit bestimmten Rules, die festgelegt sind, abgeglichen. Beispiele sind hier: Maximalarbeitszeiten (Max Überstundenanzahl), Einhaltung der Pausenzeit (Keine Pausen unter 30 Minuten)
-Der Mitarbeiter soll ich die Möglichkeit haben, mein Alter einmalig zu hinterlegen, damit die für mich gültigen Regeln automatisch angewendet werden.
+Die ausgerechneten Zeiten werden mit bestimmten Rules, die festgelegt sind, abgeglichen. Beispiele sind hier: Maximalarbeitszeiten (Max Überstundenanzahl), Einhaltung der Mittags-Pausenzeit (Keine Pausen unter 30 Minuten)
+Der Mitarbeiter soll ich die Möglichkeit haben, sein Alter einmalig zu hinterlegen, damit die für ihn gültigen Regeln automatisch angewendet werden.
 
 **Scenario**
 > 🚧 Describe when and how a user will use your application
@@ -27,8 +27,8 @@ Der Mitarbeiter soll ich die Möglichkeit haben, mein Alter einmalig zu hinterle
 5. Ich möchte als User sehen, wie viele Überstunden ich habe (ab Wochenarbeitszeit 42h) 
 6. Ich möchte als User eine Warnmeldung bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist 
 7. Ich möchte mich als User Authentifizieren (als Nickname) können bei der Verwendung des Tools, mit Personalnummer oder ähnl. 
-8. Als Vorgesetzter will ich ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter.  
-9. Als minderjähriger Mitarbeiter möchte ich keine Nacht- oder Wochenendarbeit erfassen können, damit die Jugendarbeitsschutzgesetze automatisch eingehalten werden
+8. Als Vorgesetzter will ich Ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter.  
+9. Als minderjähriger Mitarbeiter möchte ich nicht über 9h arbeiten und keine Nacht- oder Wochenendarbeit erfassen können, damit die Jugendarbeitsschutzgesetze automatisch eingehalten werden.
 
 **Use cases:**
 -	Name des Users eingeben
@@ -66,9 +66,9 @@ The application interacts with the user via the console. Users can:
 
 ### 2. Data Validation
 
-Die Applikation prüft den Upload der user-Datei und Dateieingabe.
+Die Applikation prüft den Upload der user-Datei und Dateneingabe.
 
-- **File selection:** Der user muss ein .csv file eingeben, alle anderen Datei-Typen werden nicht unterstützt und mit einer Fehlermeldung abgeblockt.
+- **file selection:** Der user muss ein .csv file eingeben, alle anderen Datei-Typen werden nicht unterstützt und mit einer Fehlermeldung abgeblockt.
 
 - **user validation:** Der user gibt seinen nickname ein, welcher nur aus Buchstaben bestehen darf
 
@@ -78,7 +78,7 @@ Die Applikation prüft den Upload der user-Datei und Dateieingabe.
 
 - **break validation:** Der user gibt seine Pausenzeiten ein, wobei diese nicht zu Arbeitsbeginn oder Ende sein dürfen. Weiter muss die Mittagspause >=30min sein.
 
-- **work time validation:** Die vorgesehene Arbeitszeit ist 42h. Alles darüber gilt als Überstunden
+- **work time validation:** Die vorgesehene Arbeitszeit ist 42h. Alles darüber gilt als Überstunden, vorgesehen aber nicht verboten sind Überstunden ab 45h.
 
 ### 3. File Processing
 
