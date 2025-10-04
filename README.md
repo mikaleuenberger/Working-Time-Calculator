@@ -66,36 +66,19 @@ The application interacts with the user via the console. Users can:
 
 ### 2. Data Validation
 
-The application validates all user input to ensure data integrity and a smooth user experience. This is implemented in `main-invoice.py` as follows:
+Die Applikation prüft den Upload der user-Datei und Dateieingabe.
 
-- **Menu selection:** When the user enters a pizza number, the program checks if the input is a digit and within the valid menu range:
-	```python
-	if not choice.isdigit() or not (1 <= int(choice) <= len(menu)):
-			print("⚠️ Invalid choice.")
-			continue
-	```
-	This ensures only valid menu items can be ordered.
+- **File selection:** Der user muss ein .csv file eingeben, alle anderen Datei-Typen werden nicht unterstützt und mit einer Fehlermeldung abgeblockt.
 
-- **Menu file validation:** When reading the menu file, the program checks for valid price values and skips invalid lines:
-	```python
-	try:
-			menu.append({"name": name, "size": size, "price": float(price)})
-	except ValueError:
-			print(f"⚠️ Skipping invalid line: {line.strip()}")
-	```
+- **user validation:** Der user gibt seinen nickname ein, welcher nur aus Buchstaben bestehen darf
 
-- **Main menu options:** The main menu checks for valid options and handles invalid choices gracefully:
-	```python
-	else:
-			print("⚠️ Invalid choice.")
-	```
+- **age validation:** Der user gibt sein Alter ein, welche nur ganze Zahlen sein können und für <=18 spezielle Bedingungen gelten: Arbeitszeit pro Tag max. 9h, keine Arbeit an Wochenenden, keine Arbeit nach 21:00 Uhr
 
-These checks prevent crashes and guide the user to provide correct input, matching the validation requirements described in the project guidelines.
+- **time input validation:** Die Arbeitszeit darf nur im Format hh:mm:ss erfasst werden
 
----
+- **break validation:** Der user gibt seine Pausenzeiten ein, wobei diese nicht zu Arbeitsbeginn oder Ende sein dürfen. Weiter muss die Mittagspause >=30min sein.
 
----
-
+- **work time validation:** Die vorgesehene Arbeitszeit ist 42h. Alles darüber gilt als Überstunden
 
 ### 3. File Processing
 
