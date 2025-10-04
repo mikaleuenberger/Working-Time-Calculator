@@ -32,10 +32,10 @@ This project is intended to:
 4. Ich möchte als User Pausen in mm eintragen können, diese Eingabe ist jedoch optional 
 5. Ich möchte als User sehen, wie viele Überstunden ich habe (ab Wochenarbeitszeit 42h) 
 6. Ich möchte als User eine Warnmeldung bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist 
-7. Ich möchte mich als User Authentifizieren können bei der Verwendung des Tools, mit Personalnummer oder ähnl. 
+7. Ich möchte mich als User Authentifizieren (als Nickname) können bei der Verwendung des Tools, mit Personalnummer oder ähnl. 
 8. Als Vorgesetzter will ich ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter.  
 9. Als minderjähriger Mitarbeiter möchte ich keine Nacht- oder Wochenendarbeit erfassen können, damit die Jugendarbeitsschutzgesetze automatisch eingehalten werden
-ewrwer
+
 **Use cases:**
 -	Name des Users eingeben
 -	Zeiteingabe
