@@ -34,12 +34,16 @@ This project is intended to:
 6. Ich möchte als User eine Warnmeldung bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist 
 7. Ich möchte mich als User Authentifizieren können bei der Verwendung des Tools, mit Personalnummer oder ähnl. 
 8. Als Vorgesetzter will ich ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter.  
+9. Als minderjähriger Mitarbeiter möchte ich keine Nacht- oder Wochenendarbeit erfassen können, damit die Jugendarbeitsschutzgesetze automatisch eingehalten werden
 
 **Use cases:**
-- Show Menu (from `menu.txt`)
-- Create Order (choose pizzas)
-- Show Current Order and Total
-- Print Invoice (to `invoice_xxx.txt`)
+-	Name des Users eingeben
+-	Zeiteingabe
+-	Eingabe von Pausen
+-	Eingabe des Alters
+-	Ausgabe meines Zeitrapports auf Monatsbasis
+-	Kommentare bei Verletzungen der Vorgaben
+
 
 ---
 
