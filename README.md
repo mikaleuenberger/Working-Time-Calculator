@@ -26,10 +26,14 @@ This project is intended to:
 💡 Example: PizzaRP solves the part of the problem where orders and totals are created by letting a user select items from a menu and automatically generating a correct invoice.
 
 **User stories:**
-1. As a user, I want to see the pizza menu in the console.
-2. As a user, I want to select pizzas and see the running total.
-3. As a user, I want discounts to be applied automatically.
-4. As a user, I want an invoice to be created and saved as a file.
+1. Als User möchte ich meine Arbeitszeit exakt eingeben (stempeln) (hh:mm:ss) 
+2. Ich möchte meine Tages-, Wochen- und Monatsarbeitszeit auf dem Blatt sehen (entweder Stand jetzt inkl. verbleibende Soll-Arbeitszeit oder Eingabe einzelner Tage und Auswertung des ganzen Monats mit bestehenden Daten) 
+3. Als User möchte ich eine Fehlermeldung, wenn ich die gesetzliche mindest Mittagszeit unterschreite 
+4. Ich möchte als User Pausen in mm eintragen können, diese Eingabe ist jedoch optional 
+5. Ich möchte als User sehen, wie viele Überstunden ich habe (ab Wochenarbeitszeit 42h) 
+6. Ich möchte als User eine Warnmeldung bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist 
+7. Ich möchte mich als User Authentifizieren können bei der Verwendung des Tools, mit Personalnummer oder ähnl. 
+8. Als Vorgesetzter will ich ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter.  
 
 **Use cases:**
 - Show Menu (from `menu.txt`)
@@ -164,9 +168,9 @@ These libraries are part of the Python standard library, so no external installa
 
 | Name       | Contribution                                 |
 |------------|----------------------------------------------|
-| Student A  | Menu reading (file input) and displaying menu|
-| Student B  | Order logic and data validation              |
-| Student C  | Invoice generation (file output) and slides  |
+| Flavio Waser  | .. |
+| Kristina Schaffner  | ..             |
+| Mika Leuenberger  | ..  |
 
 
 ## 🤝 Contributing
