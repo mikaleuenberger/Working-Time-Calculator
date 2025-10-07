@@ -1,28 +1,21 @@
 # 📊🔢 WTCalculator – Working Time Calculator (Console)
 
-Projektbeschrieb:
-
-# 📊🔢 TEMPLATE for documentation
 > 
-## 📝 Analysis
+## 📝 Analyse
 
 **Problem**
 > Für kleinere Firmen ist das Erfassen der Arbeitszeiten ein essentieller Vorgang und Software-Lösungen wie SAP sind preislich hoch angesiedelt. Mit unserer App bieten wie eine günstige Alternative. 
 
+**Scenario**
 In unserer Python Appikation sollen Arbeitszeiten erfasst und ausgewertet werden können. Ein User kann Arbeitsbeginn und Arbeitsende als Uhrzeiten erfassen und die Pausen als Stunden/Minuten Input.
 Ausgewertet wird die Brutto und die Netto Arbeitszeit. Und die Monatliche Übersicht kann als Liste in der Konsole ausgegeben werden. 
 Die ausgerechneten Zeiten werden mit bestimmten Rules, die festgelegt sind, abgeglichen. Beispiele sind hier: Maximalarbeitszeiten (Max Überstundenanzahl), Einhaltung der Mittags-Pausenzeit (Keine Pausen unter 30 Minuten)
 Der Mitarbeiter soll ich die Möglichkeit haben, sein Alter einmalig zu hinterlegen, damit die für ihn gültigen Regeln automatisch angewendet werden.
 
-**Scenario**
-> 🚧 Describe when and how a user will use your application
-
-💡 Example: PizzaRP solves the part of the problem where orders and totals are created by letting a user select items from a menu and automatically generating a correct invoice.
-
 **User stories:**
 1. Als User möchte ich meine Arbeitszeit exakt eingeben (stempeln) (hh:mm:ss) 
 2. Ich möchte meine Tages-, Wochen- und Monatsarbeitszeit auf dem Blatt sehen (entweder Stand jetzt inkl. verbleibende Soll-Arbeitszeit oder Eingabe einzelner Tage und Auswertung des ganzen Monats mit bestehenden Daten) 
-3. Als User möchte ich eine Fehlermeldung, wenn ich die gesetzliche mindest Mittagszeit unterschreite 
+3. Als User möchte ich eine Fehlermeldung, wenn ich die gesetzliche mindest Mittagszeit unterschreitet 
 4. Ich möchte als User Pausen in mm eintragen können, diese Eingabe ist jedoch optional 
 5. Ich möchte als User sehen, wie viele Überstunden ich habe (ab Wochenarbeitszeit 42h) 
 6. Ich möchte als User eine Warnmeldung bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist 
@@ -41,73 +34,82 @@ Der Mitarbeiter soll ich die Möglichkeit haben, sein Alter einmalig zu hinterle
 
 ---
 
-## ✅ Project Requirements
+## ✅ Projekt Anforderungen
 
-Each app must meet the following three criteria in order to be accepted (see also the official project guidelines PDF on Moodle):
+Jede Applikation muss die folgenden 3 Kriterien erfüllen, um akzeptiert zu werden (gemäss Guidelines auf Moodle):
 
-1. Interactive app (console input)
-2. Data validation (input checking)
-3. File processing (read/write)
-
----
-
-### 1. Interactive App (Console Input)
-
-> 🚧 In this section, document how your project fulfills each criterion.  
----
-The application interacts with the user via the console. Users can:
-- View the pizza menu
-- Select pizzas and quantities
-- See the running total
-- Receive an invoice generated as a file
+1. Interaktive Applikation (console input)
+2. Datenvalidierung (input checking)
+3. Dateiverarbeitung (read/write)
 
 ---
 
+### 1. Interaktive Applikation
 
-### 2. Data Validation
+---
+Die Applikation interagiert mit dem User in der Konsole. Der User kann in der App:
+-	Name des Users eingeben
+-	Zeiteingabe
+-	Eingabe von Pausen
+-	Eingabe des Alters
+-	Input Überprüfung: gemäss Data Validation
+-	Ausgabe meines Zeitrapports auf Monatsbasis
+-	Kommentare bei Verletzungen der Vorgaben
+
+---
+
+
+### 2. Daten Überprüfung
 
 Die Applikation prüft den Upload der user-Datei und Dateneingabe.
 
 - **file selection:** Der user muss ein .csv file eingeben, alle anderen Datei-Typen werden nicht unterstützt und mit einer Fehlermeldung abgeblockt.
 
+- **day validation:** Der user muss als Wochentage "Montag, Dienstag, Mittwoch, Donnerstag, Freitag, Samstag oder Sonntag" eingeben, alle anderen Eingaben werden nicht unterstützt und mit einer Fehlermeldung abgeblockt.
+
 - **user validation:** Der user gibt seinen nickname ein, welcher nur aus Buchstaben bestehen darf
 
 - **age validation:** Der user gibt sein Alter ein, welche nur ganze Zahlen sein können und für <=18 spezielle Bedingungen gelten: Arbeitszeit pro Tag max. 9h, keine Arbeit an Wochenenden, keine Arbeit nach 21:00 Uhr
 
-- **time input validation:** Die Arbeitszeit darf nur im Format hh:mm:ss erfasst werden
+- **time input validation:** Die Arbeitszeit darf nur im Format hh:mm erfasst werden
 
-- **break validation:** Der user gibt seine Pausenzeiten ein, wobei diese nicht zu Arbeitsbeginn oder Ende sein dürfen. Weiter muss die Mittagspause >=30min sein.
+- **break validation:** Der user gibt seine Pausenzeiten in mm ein, wobei diese nicht zu Arbeitsbeginn oder Ende sein dürfen. Weiter muss die Mittagspause >=30min sein.
 
 - **work time validation:** Die vorgesehene Arbeitszeit ist 42h. Alles darüber gilt als Überstunden, vorgesehen aber nicht verboten sind Überstunden ab 45h.
 
 ### 3. File Processing
 
-The application reads and writes data using files:
+Die Applikation liest und schreibt Daten mit dem Input file:
 
-- **Input file:** `menu.txt` — Contains the pizza menu, one item per line in the format `PizzaName;Size;Price`.
-	- Example:
+- **Input file:** `arbeitszeiterfassung.csv` — Enthält die Zeiteingaben des Benutzers, ein Tag pro Zeile im Format `Wochentag;Arbeitsbeginn;Pause;Arbeitsende;Zeitsaldo`.
+	- Beispiel:
 		```
-		Margherita;Medium;12.50
-		Salami;Large;15.00
-		Funghi;Small;9.00
+		06.10.2025;Montag;08:20;20;12:00;12:45;17:30
+		07.10.2025;Dienstag;07:35;20;11:45;13:00;17:00
+		08.10.2025;Mittwoch;07:35;20;11:45;13:00;17:00
 		```
-	- The application reads this file at startup to display available pizzas.
+	- Die Applikation liest die Daten zu Beginn, um die Validierunug sowie den Rapport auszuführen.
 
-- **Output file:** `invoice_001.txt` (and similar) — Generated when an order is completed. Contains a summary of the order, including items, quantities, prices, discounts, and totals.
-	- Example:
+- **Output file:** `arbeitszeitrapport.csv` — Enthält die Zeiteingabe des Benutzers des Monats inkl. Kommentare gemäss Validierung (Über-, Minusstunden und der Berücksichtigung der gesetztlichen Vorschriften).
+
+	- Beispiel:
 		```
-		Invoice #001
+		Mitarbeiter #001
 		----------------------
-		1x Margherita (Medium)   12.50
+		Datum:			Wochentag:				Arbeitszeit		Kommentar					Kummulierter Saldo
+		06.10.2025		Montag					08:24										08:24
+		07.10.2025		Dienstag				08:24			Mittagszeit unterschritten	16:48
+		08.10.2025		Mittwoch				09:24			Arbeitszeit über 9h			26:12
 
 
-		2x Salami (Large)        30.00
+		!Achtung: 07.10.2025 Mittagszeit unterschritten!
+		!Achtung: 08.10.2025 Arbeitszeit Minderjährige überschritten!
 		----------------------
-		Total:                  42.50
-		Discount:                2.50
-		Amount Due:             40.00
+		Total:                  26:12
+		Monats-Soll:            168:00
+		Gleitzeit-Saldo:        -142.28
 		```
-		- The output file serves as a record for both the user and the pizzeria, ensuring accuracy and transparency.
+		- Der Output dient dem Mitarbeiter wie auch dem Vorgesetzen als Übersicht über die geleistete Arbeitsstunden, den Gleitzeitssaldo sowie der Einhaltung gesetzlicher Vorgaben. 
 
 ## ⚙️ Implementation
 
@@ -118,10 +120,10 @@ The application reads and writes data using files:
 
 ### 📂 Repository Structure
 ```text
-PizzaRP/
+Working Time Calculator/
 ├── main.py             # main program logic (console application)
-├── menu.txt            # pizza menu (input data file)
-├── invoice_001.txt     # example of a generated invoice (output file)
+├── wtc.csv	            # working time (input data file)
+├── oct2025_001.csv     # example of monthly report (output file)
 ├── docs/               # optional screenshots or project documentation
 └── README.md           # project description and milestones
 ```
