@@ -4,7 +4,8 @@
 ## 📝 Analyse
 
 **Problem**
-> Für kleinere Firmen ist das Erfassen der Arbeitszeiten ein essentieller Vorgang und Software-Lösungen wie SAP sind preislich hoch angesiedelt. Mit unserer App bieten wie eine günstige Alternative. 
+> Für kleinere Firmen ist das Erfassen der Arbeitszeiten ein essentieller Prozess.  
+Kommerzielle Lösungen wie SAP sind jedoch teuer. Mit unserer App bieten wir eine **einfache und kostengünstige Alternative** zur Arbeitszeiterfassung.
 
 **Scenario**
 In unserer Python Appikation sollen Arbeitszeiten erfasst und ausgewertet werden können. Ein User kann Arbeitsbeginn und Arbeitsende als Uhrzeiten erfassen und die Pausen als Stunden/Minuten Input.
@@ -24,12 +25,11 @@ Der Mitarbeiter soll ich die Möglichkeit haben, sein Alter einmalig zu hinterle
 9. Als minderjähriger Mitarbeiter möchte ich nicht über 9h arbeiten und keine Nacht- oder Wochenendarbeit erfassen können, damit die Jugendarbeitsschutzgesetze automatisch eingehalten werden.
 
 **Use cases:**
--	Name des Users eingeben
--	Zeiteingabe
--	Eingabe von Pausen
--	Eingabe des Alters
--	Ausgabe meines Zeitrapports auf Monatsbasis
--	Kommentare bei Verletzungen der Vorgaben
+- Benutzernamen und Alter erfassen  
+- Arbeitszeiten und Pausen eingeben  
+- Eingaben validieren  
+- Zeitrapport auf Monatsbasis ausgeben  
+- Kommentare bei Regelverletzungen anzeigen
 
 
 ---
@@ -48,13 +48,13 @@ Jede Applikation muss die folgenden 3 Kriterien erfüllen, um akzeptiert zu werd
 
 ---
 Die Applikation interagiert mit dem User in der Konsole. Der User kann in der App:
--	Name des Users eingeben
--	Zeiteingabe
--	Eingabe von Pausen
--	Eingabe des Alters
--	Input Überprüfung: gemäss Data Validation
--	Ausgabe meines Zeitrapports auf Monatsbasis
--	Kommentare bei Verletzungen der Vorgaben
+- Name des Users eingeben
+- Zeiteingabe
+- Eingabe von Pausen
+- Eingabe des Alters
+- Input Überprüfung: gemäss Data Validation
+- Ausgabe meines Zeitrapports auf Monatsbasis
+- Kommentare bei Verletzungen der Vorgaben
 
 ---
 
@@ -112,6 +112,7 @@ Die Applikation liest und schreibt Daten mit dem Input file:
 		- Der Output dient dem Mitarbeiter wie auch dem Vorgesetzen als Übersicht über die geleistete Arbeitsstunden, den Gleitzeitssaldo sowie der Einhaltung gesetzlicher Vorgaben. 
 
 ## ⚙️ Implementation
+> ⚠️ Dieser Abschnitt ist noch in Bearbeitung und folgt in der finalen Version des Dokuments.
 
 ### Technology
 - Python 3.x
@@ -119,6 +120,8 @@ Die Applikation liest und schreibt Daten mit dem Input file:
 - No external libraries
 
 ### 📂 Repository Structure
+> 🚧 Beschreibung folgt noch..
+
 ```text
 Working Time Calculator/
 ├── main.py             # main program logic (console application)
@@ -148,11 +151,11 @@ These libraries are part of the Python standard library, so no external installa
 ## 👥 Team & Contributions
 > 🚧 Die genauen Beteiligungen der einzelnen Mitglieder folgt noch..
 
-| Name       | Contribution                                 |
-|------------|----------------------------------------------|
-| Flavio Waser  | .. |
-| Kristina Schaffner  | ..             |
-| Mika Leuenberger  | ..  |
+| Name               | Contribution |
+| ------------------ | ------------ |
+| Flavio Waser       | ..           |
+| Kristina Schaffner | ..           |
+| Mika Leuenberger   | ..           |
 
 
 ## 🤝 Contributing
