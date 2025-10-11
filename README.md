@@ -129,7 +129,7 @@ Working Time Calculator/
 ```
 
 ### How to Run
-> 🚧 Adjust if needed.
+> 🚧 Beschreibung folgt noch..
 1. Open the repository in **GitHub Codespaces**
 2. Open the **Terminal**
 3. Run:
@@ -138,7 +138,7 @@ Working Time Calculator/
 	```
 
 ### Libraries Used
-
+> 🚧 Beschreibung folgt noch..
 - `os`: Used for file and path operations, such as checking if the menu file exists and creating new files.
 - `glob`: Used to find all invoice files matching a pattern (e.g., `invoice_*.txt`) to determine the next invoice number.
 
@@ -146,8 +146,7 @@ These libraries are part of the Python standard library, so no external installa
 
 
 ## 👥 Team & Contributions
-
-> 🚧 Fill in the names of all team members and describe their individual contributions below. Each student should be responsible for at least one part of the project.
+> 🚧 Die genauen Beteiligungen der einzelnen Mitglieder folgt noch..
 
 | Name       | Contribution                                 |
 |------------|----------------------------------------------|
