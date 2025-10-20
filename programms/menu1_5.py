@@ -1,4 +1,4 @@
-# WTCalculator – Hauptmenü (Console Version)
+# Arbeitszeiterfassung --> Hauptmenü 
 # Dieses Programm gibt dem User ein Einstiegsmenu
 # mit der Auswahl von 1–6 Menüpunkten
 
@@ -9,6 +9,12 @@ MONATSRAPPORT = 3
 BENUTZEREINSTELLUNGEN = 4
 ADMIN = 5
 BEENDEN = 6
+
+
+#Frage, macht es sinn hier vorhandene CSV zu prüfen und zu laden? Todo Funktion bauen
+
+def check_files():
+    print ("Funktion einbauen für CSV Prüfung (abklären)")
 
 # Platzhalter für die einzelnen Menüoptionen
 
