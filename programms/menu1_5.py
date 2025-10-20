@@ -10,6 +10,32 @@ BENUTZEREINSTELLUNGEN = 4
 ADMIN = 5
 BEENDEN = 6
 
+# Platzhalter für die einzelnen Menüoptionen
+
+
+def arbeitszeiterfassung():
+    print("🕑 Funktion: Arbeitszeiterfassung (noch in Entwicklung)")
+
+
+def wochenuebersicht():
+    print("📅 Funktion: Wochenübersicht (noch in Entwicklung)")
+
+
+def monatsrapport():
+    print("📊 Funktion: Monatsrapport (noch in Entwicklung)")
+
+
+def benutzereinstellungen():
+    print("⚙️ Funktion: Benutzereinstellungen (noch in Entwicklung)")
+
+
+def adminbereich():
+    print("🔐 Funktion: Adminbereich (noch in Entwicklung)")
+
+
+# !!!   Teil oberhalb der Linie noch anpassen   !!!!!!!!!!!
+
+#   ---------------------------------------------------------
 
 # Die Hauptfunktion (main)
 def main():
@@ -28,22 +54,17 @@ def main():
             print("❌ Ungültige Eingabe! Bitte eine Zahl zwischen 1 und 6 eingeben.")
             continue
 
-        # Ausgewählte Funktion ausführen
+        # Menüauswahl prüfen und Funktionen aufrufen
         if choice == ARBEITSZEITERFASSUNG:
-            print("🔹 Gib deine Arbeitszeiten ein...")
-            #Todo: Programm noch schreiben
+            arbeitszeiterfassung()
         elif choice == WOCHENUEBERSICHT:
-            print("📅 Wochenübersicht wird angezeigt...")
-            #Todo: Programm noch schreiben
+            wochenuebersicht()
         elif choice == MONATSRAPPORT:
-            print("📊 Monatsrapport wird erstellt...")
-            #Todo: Programm noch schreiben
+            monatsrapport()
         elif choice == BENUTZEREINSTELLUNGEN:
-            print("⚙️ Öffne Benutzereinstellungen...")
-            #Todo: Programm noch schreiben
+            benutzereinstellungen()
         elif choice == ADMIN:
-            print("🔐 Adminbereich wird geöffnet...")
-            #Todo: Programm noch schreiben
+            adminbereich()
         elif choice == BEENDEN:
             print("👋 Programm wird beendet. Bis morgen!")
         else:
@@ -65,5 +86,5 @@ def display_menu():
 
 
 # Ruft das Hauptmenü auf
-main()
-
+if __name__ == "__main__":
+    main()
