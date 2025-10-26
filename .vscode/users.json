@@ -1,0 +1,44 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "name": "Müller",
+            "surname": "Hans",
+            "email": "hans.mueller@firma.com",
+            "business role": "Mitarbeiter",
+            "age": 23
+        },
+        {
+            "id": 2,
+            "name": "Suter",
+            "surname": "Peter",
+            "email": "peter.suter@firma.com",
+            "business role": "Mitarbeiter",
+            "age": 34
+        },
+        {
+            "id": 3,
+            "name": "Hübner",
+            "surname": "Matthias",
+            "email": "matthias.huebner@firma.com",
+            "business role": "Mitarbeiter",
+            "age": 16
+        },
+        {
+            "id": 4,
+            "name": "Ackermann",
+            "surname": "Hans",
+            "email": "hans.ackermann@firma.com",
+            "business role": "Vorgesetzter",
+            "age": 46
+        },
+        {
+            "id": 5,
+            "name": "Nohl",
+            "surname": "Yannick",
+            "email": "yannick.nohl@firma.com",
+            "business role": "Vorgesetzter",
+            "age": 57
+        }
+    ]
+}
