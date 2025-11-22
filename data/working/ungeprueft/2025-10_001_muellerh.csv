@@ -1,0 +1,7 @@
+Datum;Wochentag;Arbeitsbeginn;Pause_min;Mittag_beginn;Mittag_ende;Arbeitsende;Kommentar
+06.10.2025;Montag;08:00;15;13:00;13:30;18:00;
+07.10.2025;Dienstag;07:45;30;12:15;13:00;19:10;
+08.10.2025;Mittwoch;07:30;20;11:45;12:15;18:45;Mittag zu kurz
+09.10.2025;Donnerstag;08:15;0;;;17:20;
+10.10.2025;Freitag;09:00;45;12:00;13:00;18:00;Überzeit
+
