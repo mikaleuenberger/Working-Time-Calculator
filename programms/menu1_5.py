@@ -35,11 +35,13 @@ def wochenuebersicht():
 
 
 def monatsrapport():
+    """Menü für die Erstellung von Monatsrapporten."""
     print("📊 Monatsrapport")
 
-    # Monatseingabe mit Validierung
+    # Monatseingabe mit einfacher Validierung
     while True:
         month = input("Monat (YYYY-MM): ").strip()
+        # Prüfen: Länge 7, an Stelle 4 ein '-', Jahr und Monat sind Ziffern
         if len(month) == 7 and month[4] == "-" and \
            month[:4].isdigit() and month[5:].isdigit():
             mm = int(month[5:])
@@ -47,21 +49,16 @@ def monatsrapport():
                 break
         print("❌ Ungültiges Format! Bitte z. B. 2025-10 eingeben.\n")
 
-    # Eingabe Report-Auswahl (1 oder 2)
+    # Auswahl, ob Einzelperson oder Vorgesetzten-Übersicht
     print("\n┌───────────────────────────────┐")
     print("│   1) Einzelperson             │")
     print("│   2) Vorgesetzten-Übersicht   │")
     print("└───────────────────────────────┘")
 
     mode = input("Bitte wählen (1/2): ").strip()
-    if mode not in ("1", "2"):
-        print("❌ Ungültige Auswahl.")
-        return
 
-    # -------------------------------
-    # Modus 1: Report für eine Person
-    # -------------------------------
     if mode == "1":
+        # Report für eine einzelne Person
         while True:
             print("\n==============================")
             emp = input(
@@ -69,34 +66,31 @@ def monatsrapport():
             ).strip()
             print("==============================")
 
-            # Validierung: Mitarbeiter-ID muss Zahl sein (wenn eingegeben)
+            # Falls etwas eingegeben wurde: prüfen, ob es eine Zahl ist
             if emp:
                 if not emp.isdigit():
                     print("❌ Mitarbeiter-ID muss eine Zahl sein.\n")
                     continue
                 emp_id = int(emp)
             else:
-                emp_id = None  # nur nach Monat suchen
+                # Keine ID eingegeben: erste passende Datei des Monats wird benutzt
+                emp_id = None
 
             # Report erzeugen
-            result = generate_employee_report(
-                BASE_DIR, month, emp_id=emp_id
-            )
+            result = generate_employee_report(BASE_DIR, month, emp_id=emp_id)
 
             # generate_employee_report gibt None zurück, wenn keine Datei gefunden wurde
             if result is None:
-                print("\n❌ Keine passende Datei gefunden für diese Kombination.")
+                print("\n❌ Keine passende Datei gefunden.")
                 print("   Bitte Monat und Mitarbeiter-ID prüfen.\n")
-                # nochmal fragen
+                # Schleife erneut laufen lassen, damit der User neue Angaben machen kann
                 continue
 
-            # Wenn wir hier sind, hat es geklappt → Schleife beenden
+            # Wenn wir hier sind, wurde ein Report erstellt → Schleife beenden
             break
 
-    # -------------------------------
-    # Modus 2: Übersicht für Vorgesetzte
-    # -------------------------------
     elif mode == "2":
+        # Übersicht für Vorgesetzte über alle Mitarbeitenden im Monat
         generate_supervisor_overview(BASE_DIR, month)
 
     else:

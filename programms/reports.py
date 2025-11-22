@@ -7,7 +7,6 @@ from datetime import datetime
 import csv
 import json
 
-# So steht das Datum in euren CSV Dateien, z. B. 06.10.2025
 DTFMT = "%d.%m.%Y"
 
 
@@ -15,9 +14,8 @@ DTFMT = "%d.%m.%Y"
 # User-Daten aus users.json laden
 # ---------------------------------------------------
 
-def load_user_data(base_dir: Path) -> dict:
+def load_user_data(base_dir):
     """Lädt users.json und gibt dict mit ID → Klarname zurück."""
-    # Mögliche Speicherorte der users.json
     candidate_paths = [
         base_dir / "users.json",
         base_dir / "data" / "users.json",
@@ -30,103 +28,95 @@ def load_user_data(base_dir: Path) -> dict:
             break
 
     if user_file is None:
-        print("⚠️ users.json nicht gefunden (weder im Projektroot noch im data/-Ordner)."
-              " Klarname wird auf 'unbekannt' gesetzt.")
+        print("⚠️ users.json nicht gefunden. Klarname wird auf 'unbekannt' gesetzt.")
         return {}
 
-    # Debug: zeigen, welche Datei verwendet wird
-    print(f"ℹ️ users.json geladen von: {user_file}")
+    print("✔ users.json geladen von:", user_file)
 
     with user_file.open(encoding="utf-8") as fh:
         data = json.load(fh)
 
-    users = {}
-    # Struktur deines JSON:
-    # { "users": [ { "id": 1, "name": "Müller", "surname": "Hans", ... }, ... ] }
+    users = {}  # ID → Klarname
     for u in data.get("users", []):
         try:
             emp_id = int(u["id"])
-        except (KeyError, ValueError, TypeError):
+        except:
             continue
 
-        # In deinem JSON:
-        # name    = Nachname (z.B. "Müller")
-        # surname = Vorname  (z.B. "Hans")
+        # surname = Vorname
+        # name    = Nachname
         vorname = str(u.get("surname", "")).strip()
         nachname = str(u.get("name", "")).strip()
-        klarname = f"{vorname} {nachname}".strip()  # "Hans Müller"
+        klarname = (vorname + " " + nachname).strip()
 
-        users[emp_id] = klarname or "unbekannt"
+        users[emp_id] = klarname
 
     return users
 
 
 # ---------------------------------------------------
-# HILFSFUNKTIONEN
+# Hilfsfunktionen
 # ---------------------------------------------------
 
-def mm_to_hhmm(total_min: int) -> str:
-    """Wandelt Minuten in HH:MM um, Beispiel: 510 → 08:30."""
+def mm_to_hhmm(total_min):
+    """Wandelt Minuten in HH:MM um."""
     sign = "-" if total_min < 0 else ""
     total_min = abs(total_min)
     h, m = divmod(total_min, 60)
-    return f"{sign}{h:02d}:{m:02d}"
+    return "%s%02d:%02d" % (sign, h, m)
 
 
-def row_minutes(row: dict) -> int:
-    """Berechnet die Nettoarbeitszeit für eine Zeile im CSV."""
-
+def row_minutes(row):
+    """Berechnet Nettoarbeitszeit für eine CSV-Zeile."""
     start_str = (row.get("Arbeitsbeginn") or "").strip()
     end_str = (row.get("Arbeitsende") or "").strip()
+
     if not start_str or not end_str:
         return 0
 
     try:
         start = datetime.strptime(start_str, "%H:%M")
         end = datetime.strptime(end_str, "%H:%M")
-    except ValueError:
+    except:
         return 0
 
     gross = int((end - start).total_seconds() // 60)
 
     pause_str = (row.get("Pause_min") or "").strip()
     try:
-        pause_min = int(pause_str) if pause_str != "" else 0
-    except ValueError:
+        pause_min = int(pause_str)
+    except:
         pause_min = 0
 
     lunch_min = 0
-    lunch_from = (row.get("Mittag_beginn") or "").strip()
-    lunch_to = (row.get("Mittag_ende") or "").strip()
-    if lunch_from and lunch_to:
+    lf = (row.get("Mittag_beginn") or "").strip()
+    lt = (row.get("Mittag_ende") or "").strip()
+
+    if lf and lt:
         try:
-            lf = datetime.strptime(lunch_from, "%H:%M")
-            lt = datetime.strptime(lunch_to, "%H:%M")
-            lunch_min = int((lt - lf).total_seconds() // 60)
-        except ValueError:
+            lf_dt = datetime.strptime(lf, "%H:%M")
+            lt_dt = datetime.strptime(lt, "%H:%M")
+            lunch_min = int((lt_dt - lf_dt).total_seconds() // 60)
+        except:
             lunch_min = 0
 
-    netto = gross - pause_min - lunch_min
-    return max(0, netto)
+    return max(0, gross - pause_min - lunch_min)
 
 
 # ---------------------------------------------------
-# HAUPTFUNKTION 1: Report für EINEN Mitarbeiter
+# Mitarbeiter-Report
 # ---------------------------------------------------
 
-def generate_employee_report(base_dir: Path, month: str, emp_id: int | None = None) -> Path | None:
-    """Erstellt einen Monatsrapport für eine bestimmte Person (nur über Mitarbeiter-ID)."""
+def generate_employee_report(base_dir, month, emp_id=None):
+    """Erstellt Monatsrapport für einen Mitarbeitenden."""
 
-    # Alle Dateien des Monats suchen.
-    files: list[Path] = []
+    files = []
     for folder_name in ["geprueft", "ungeprueft"]:
         folder = base_dir / "data" / "working" / folder_name
         if folder.exists():
-            files.extend(folder.glob(f"{month}_*.csv"))
+            files.extend(folder.glob(month + "_*.csv"))
 
-    # Passende Datei für den Mitarbeitenden finden.
-    # Erwartetes Dateiformat: YYYY-MM_ID_NICKNAME.csv
-    target_file: Path | None = None
+    target_file = None
     for f in files:
         parts = f.stem.split("_")
         if len(parts) < 3:
@@ -134,7 +124,7 @@ def generate_employee_report(base_dir: Path, month: str, emp_id: int | None = No
 
         try:
             file_emp_id = int(parts[1])
-        except ValueError:
+        except:
             continue
 
         if emp_id is None or emp_id == file_emp_id:
@@ -142,100 +132,98 @@ def generate_employee_report(base_dir: Path, month: str, emp_id: int | None = No
             break
 
     if target_file is None:
-        print("Keine passende Datei gefunden.")
+        print("❌ Keine passende Datei gefunden.")
         return None
 
-    # CSV-Datei einlesen
+    # CSV laden
     with target_file.open(encoding="utf-8", newline="") as fh:
         reader = csv.DictReader(fh, delimiter=";")
         rows = list(reader)
 
     total_min = 0
-    week_sums: dict[tuple[int, int], int] = {}
-    errors: list[str] = []
+    week_sums = {}
+    errors = []
 
     for r in rows:
         mins = row_minutes(r)
         total_min += mins
 
-        date_str = (r.get("Datum") or "").strip()
-        if date_str:
+        d = (r.get("Datum") or "").strip()
+        if d:
             try:
-                dt = datetime.strptime(date_str, DTFMT)
+                dt = datetime.strptime(d, DTFMT)
                 year, week_nr, _ = dt.isocalendar()
                 key = (year, week_nr)
                 week_sums[key] = week_sums.get(key, 0) + mins
-            except ValueError:
+            except:
                 pass
 
         comment = (r.get("Kommentar") or "").strip()
         if comment:
-            errors.append(f"{date_str} {comment}")
+            errors.append(d + " " + comment)
 
     weekly_overtime = 0
     for key in week_sums:
-        week_min = week_sums[key]
-        if week_min > 42 * 60:
-            weekly_overtime += week_min - 42 * 60
+        if week_sums[key] > 42 * 60:
+            weekly_overtime += week_sums[key] - 42 * 60
 
     parts = target_file.stem.split("_")
     emp_id_from_file = int(parts[1])
-    nick_from_file = parts[2]
+    nick = parts[2]
 
-    lines: list[str] = []
-    lines.append(f"Mitarbeiter #{emp_id_from_file:03d} ({nick_from_file})")
+    # Report zusammenstellen
+    lines = []
+    lines.append("Mitarbeiter #%03d (%s)" % (emp_id_from_file, nick))
     lines.append("------------------------------------------")
     lines.append("Datum        Wochentag   Netto    Kommentar")
 
     for r in rows:
-        d = (r.get("Datum", "")).ljust(12)
-        w = (r.get("Wochentag", "")[:10]).ljust(11)
-        netto_str = mm_to_hhmm(row_minutes(r)).rjust(7)
-        c = (r.get("Kommentar") or "")
-        lines.append(f"{d}{w}{netto_str}   {c}")
+        d = (r.get("Datum") or "").ljust(12)
+        w = (r.get("Wochentag") or "")[:10].ljust(11)
+        netto = mm_to_hhmm(row_minutes(r)).rjust(7)
+        c = r.get("Kommentar") or ""
+        lines.append("%s%s%s   %s" % (d, w, netto, c))
 
     lines.append("")
     lines.append("Hinweise:")
     if errors:
         for e in errors:
-            lines.append(f"! {e}")
+            lines.append("! " + e)
     else:
         lines.append("keine")
 
     lines.append("------------------------------------------")
-    lines.append(f"Total Monat:        {mm_to_hhmm(total_min)}")
-    lines.append(f"Überstunden (Wo):   {mm_to_hhmm(weekly_overtime)}")
+    lines.append("Total Monat:        " + mm_to_hhmm(total_min))
+    lines.append("Überstunden (Wo):   " + mm_to_hhmm(weekly_overtime))
 
     out_dir = base_dir / "data" / "reports"
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / \
-        f"{month}_report_{emp_id_from_file:03d}_{nick_from_file}.txt"
+    out_path = out_dir / ("%s_report_%03d_%s.txt" %
+                          (month, emp_id_from_file, nick))
 
     with out_path.open("w", encoding="utf-8") as out:
         out.write("\n".join(lines))
 
-    print(f"Report erstellt: {out_path}")
+    print("✔ Report erstellt:", out_path)
     return out_path
 
 
 # ---------------------------------------------------
-# HAUPTFUNKTION 2: Übersicht für Vorgesetzte
+# Vorgesetzten-Übersicht
 # ---------------------------------------------------
 
-def generate_supervisor_overview(base_dir: Path, month: str) -> Path:
-    """Erstellt eine Übersicht über alle Mitarbeitenden des Monats."""
+def generate_supervisor_overview(base_dir, month):
+    """Erstellt eine Übersicht über alle Mitarbeitenden."""
 
-    # Klarname aus users.json laden
     users = load_user_data(base_dir)
 
-    files: list[Path] = []
+    files = []
     for folder_name in ["geprueft", "ungeprueft"]:
         folder = base_dir / "data" / "working" / folder_name
         if folder.exists():
-            files.extend(folder.glob(f"{month}_*.csv"))
+            files.extend(folder.glob(month + "_*.csv"))
 
-    # Headerzeile
-    out_lines: list[str] = [
+    out_lines = [
         "emp_id;klarname;nickname;status;total_hhmm;overtime_week_hhmm;has_errors;source_file"
     ]
 
@@ -252,7 +240,7 @@ def generate_supervisor_overview(base_dir: Path, month: str) -> Path:
         nick = parts[2]
 
         total_min = 0
-        week_sums: dict[tuple[int, int], int] = {}
+        week_sums = {}
         has_errors = False
 
         for r in rows:
@@ -262,38 +250,39 @@ def generate_supervisor_overview(base_dir: Path, month: str) -> Path:
             if (r.get("Kommentar") or "").strip():
                 has_errors = True
 
-            date_str = (r.get("Datum") or "").strip()
-            if date_str:
+            d = (r.get("Datum") or "").strip()
+            if d:
                 try:
-                    dt = datetime.strptime(date_str, DTFMT)
+                    dt = datetime.strptime(d, DTFMT)
                     year, week_nr, _ = dt.isocalendar()
                     key = (year, week_nr)
                     week_sums[key] = week_sums.get(key, 0) + mins
-                except ValueError:
+                except:
                     pass
 
         overtime = 0
         for key in week_sums:
-            week_min = week_sums[key]
-            if week_min > 42 * 60:
-                overtime += week_min - 42 * 60
+            if week_sums[key] > 42 * 60:
+                overtime += week_sums[key] - 42 * 60
 
         status = "geprueft" if f.parent.name == "geprueft" else "ungeprueft"
-
         klarname = users.get(emp_id, "unbekannt")
 
         out_lines.append(
-            f"{emp_id};{klarname};{nick};{status};"
-            f"{mm_to_hhmm(total_min)};{mm_to_hhmm(overtime)};"
-            f"{str(has_errors).lower()};{f.name}"
+            "%d;%s;%s;%s;%s;%s;%s;%s"
+            % (emp_id, klarname, nick, status,
+               mm_to_hhmm(total_min),
+               mm_to_hhmm(overtime),
+               str(has_errors).lower(),
+               f.name)
         )
 
     out_dir = base_dir / "data" / "reports"
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / f"{month}_supervisor_overview.csv"
+    out_path = out_dir / (month + "_supervisor_overview.csv")
 
     with out_path.open("w", encoding="utf-8") as out:
         out.write("\n".join(out_lines))
 
-    print(f"Übersicht erstellt: {out_path}")
+    print("✔ Übersicht erstellt:", out_path)
     return out_path
