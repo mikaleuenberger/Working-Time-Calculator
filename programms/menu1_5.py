@@ -10,6 +10,7 @@ from reports import generate_employee_report, generate_supervisor_overview
 # BASE_DIR ist der Projektordner (eine Ebene über "programms")
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
 # Feste Werte für das Menü
 ARBEITSZEITERFASSUNG = 1
 WOCHENUEBERSICHT = 2

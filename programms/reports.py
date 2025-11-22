@@ -15,33 +15,48 @@ DTFMT = "%d.%m.%Y"
 # User-Daten aus users.json laden
 # ---------------------------------------------------
 
-def load_user_data(base_dir):
+def load_user_data(base_dir: Path) -> dict:
     """Lädt users.json und gibt dict mit ID → Klarname zurück."""
-    user_file = base_dir / "users.json"
-    if not user_file.exists():
-        print("⚠️ users.json nicht gefunden, Klarname wird auf 'unbekannt' gesetzt.")
+    # Mögliche Speicherorte der users.json
+    candidate_paths = [
+        base_dir / "users.json",
+        base_dir / "data" / "users.json",
+    ]
+
+    user_file = None
+    for p in candidate_paths:
+        if p.exists():
+            user_file = p
+            break
+
+    if user_file is None:
+        print("⚠️ users.json nicht gefunden (weder im Projektroot noch im data/-Ordner)."
+              " Klarname wird auf 'unbekannt' gesetzt.")
         return {}
+
+    # Debug: zeigen, welche Datei verwendet wird
+    print(f"ℹ️ users.json geladen von: {user_file}")
 
     with user_file.open(encoding="utf-8") as fh:
         data = json.load(fh)
 
     users = {}
+    # Struktur deines JSON:
+    # { "users": [ { "id": 1, "name": "Müller", "surname": "Hans", ... }, ... ] }
     for u in data.get("users", []):
         try:
-            # IDs in deinem JSON sind ints (1,2,3...), das passt.
             emp_id = int(u["id"])
         except (KeyError, ValueError, TypeError):
             continue
 
-        # In deinem JSON ist 'surname' der Vorname und 'name' der Nachname
-        vorname = u.get("surname", "").strip()   # Hans
-        nachname = u.get("name", "").strip()     # Müller
+        # In deinem JSON:
+        # name    = Nachname (z.B. "Müller")
+        # surname = Vorname  (z.B. "Hans")
+        vorname = str(u.get("surname", "")).strip()
+        nachname = str(u.get("name", "")).strip()
         klarname = f"{vorname} {nachname}".strip()  # "Hans Müller"
 
         users[emp_id] = klarname or "unbekannt"
-
-    # Debug, wenn du willst:
-    # print("Geladene Mitarbeiter:", users)
 
     return users
 
@@ -50,21 +65,19 @@ def load_user_data(base_dir):
 # HILFSFUNKTIONEN
 # ---------------------------------------------------
 
-def mm_to_hhmm(total_min):
-    """Wandelt Minuten in HH:MM um, Beispiel: 510 → 08:30"""
-
+def mm_to_hhmm(total_min: int) -> str:
+    """Wandelt Minuten in HH:MM um, Beispiel: 510 → 08:30."""
     sign = "-" if total_min < 0 else ""
     total_min = abs(total_min)
     h, m = divmod(total_min, 60)
     return f"{sign}{h:02d}:{m:02d}"
 
 
-def row_minutes(row):
+def row_minutes(row: dict) -> int:
     """Berechnet die Nettoarbeitszeit für eine Zeile im CSV."""
 
     start_str = (row.get("Arbeitsbeginn") or "").strip()
     end_str = (row.get("Arbeitsende") or "").strip()
-
     if not start_str or not end_str:
         return 0
 
@@ -85,7 +98,6 @@ def row_minutes(row):
     lunch_min = 0
     lunch_from = (row.get("Mittag_beginn") or "").strip()
     lunch_to = (row.get("Mittag_ende") or "").strip()
-
     if lunch_from and lunch_to:
         try:
             lf = datetime.strptime(lunch_from, "%H:%M")
@@ -102,24 +114,21 @@ def row_minutes(row):
 # HAUPTFUNKTION 1: Report für EINEN Mitarbeiter
 # ---------------------------------------------------
 
-def generate_employee_report(base_dir, month, emp_id=None):
+def generate_employee_report(base_dir: Path, month: str, emp_id: int | None = None) -> Path | None:
     """Erstellt einen Monatsrapport für eine bestimmte Person (nur über Mitarbeiter-ID)."""
 
     # Alle Dateien des Monats suchen.
-    files = []
+    files: list[Path] = []
     for folder_name in ["geprueft", "ungeprueft"]:
         folder = base_dir / "data" / "working" / folder_name
         if folder.exists():
-            for f in folder.glob(f"{month}_*.csv"):
-                files.append(f)
+            files.extend(folder.glob(f"{month}_*.csv"))
 
     # Passende Datei für den Mitarbeitenden finden.
-    # Erwartetes Dateiformat: YYYY-MM_ID_NICKNAME.csv (3 Teile)
-    # Wenn emp_id None ist, wird einfach die erste Monatsdatei genommen.
-    target_file = None
+    # Erwartetes Dateiformat: YYYY-MM_ID_NICKNAME.csv
+    target_file: Path | None = None
     for f in files:
         parts = f.stem.split("_")
-        # prüft, dass es 3 Positionen hat: Datum_ID_Nickname
         if len(parts) < 3:
             continue
 
@@ -142,8 +151,8 @@ def generate_employee_report(base_dir, month, emp_id=None):
         rows = list(reader)
 
     total_min = 0
-    week_sums = {}
-    errors = []
+    week_sums: dict[tuple[int, int], int] = {}
+    errors: list[str] = []
 
     for r in rows:
         mins = row_minutes(r)
@@ -173,7 +182,7 @@ def generate_employee_report(base_dir, month, emp_id=None):
     emp_id_from_file = int(parts[1])
     nick_from_file = parts[2]
 
-    lines = []
+    lines: list[str] = []
     lines.append(f"Mitarbeiter #{emp_id_from_file:03d} ({nick_from_file})")
     lines.append("------------------------------------------")
     lines.append("Datum        Wochentag   Netto    Kommentar")
@@ -213,21 +222,20 @@ def generate_employee_report(base_dir, month, emp_id=None):
 # HAUPTFUNKTION 2: Übersicht für Vorgesetzte
 # ---------------------------------------------------
 
-def generate_supervisor_overview(base_dir, month):
+def generate_supervisor_overview(base_dir: Path, month: str) -> Path:
     """Erstellt eine Übersicht über alle Mitarbeitenden des Monats."""
 
     # Klarname aus users.json laden
     users = load_user_data(base_dir)
 
-    files = []
+    files: list[Path] = []
     for folder_name in ["geprueft", "ungeprueft"]:
         folder = base_dir / "data" / "working" / folder_name
         if folder.exists():
-            for f in folder.glob(f"{month}_*.csv"):
-                files.append(f)
+            files.extend(folder.glob(f"{month}_*.csv"))
 
-    # HEADER
-    out_lines = [
+    # Headerzeile
+    out_lines: list[str] = [
         "emp_id;klarname;nickname;status;total_hhmm;overtime_week_hhmm;has_errors;source_file"
     ]
 
@@ -244,7 +252,7 @@ def generate_supervisor_overview(base_dir, month):
         nick = parts[2]
 
         total_min = 0
-        week_sums = {}
+        week_sums: dict[tuple[int, int], int] = {}
         has_errors = False
 
         for r in rows:
