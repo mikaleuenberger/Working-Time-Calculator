@@ -5,9 +5,31 @@
 from pathlib import Path
 from datetime import datetime
 import csv
+import json
 
 # So steht das Datum in euren CSV Dateien, z. B. 06.10.2025
 DTFMT = "%d.%m.%Y"
+
+
+# ---------------------------------------------------
+# User-Daten aus users.json laden
+# ---------------------------------------------------
+
+def load_user_data(base_dir):
+    """Lädt users.json und gibt dict mit ID → Klarname zurück."""
+    user_file = base_dir / "users.json"
+    if not user_file.exists():
+        return {}
+
+    with user_file.open(encoding="utf-8") as fh:
+        data = json.load(fh)
+
+    # Beispiel: {1: "Hans Müller", 2: "Peter Suter"}
+    users = {}
+    for u in data["users"]:
+        users[u["id"]] = f"{u['name']} {u['surname']}"
+
+    return users
 
 
 # ---------------------------------------------------
@@ -66,10 +88,10 @@ def row_minutes(row):
 # HAUPTFUNKTION 1: Report für EINEN Mitarbeiter
 # ---------------------------------------------------
 
-def generate_employee_report(base_dir, month, emp_id=None, nickname=None):
-    """Erstellt einen Monatsrapport für eine bestimmte Person."""
+def generate_employee_report(base_dir, month, emp_id=None):
+    """Erstellt einen Monatsrapport für eine bestimmte Person (nur über Mitarbeiter-ID)."""
 
-    # Alle Dateien des Monats suchen
+    # Alle Dateien des Monats suchen.
     files = []
     for folder_name in ["geprueft", "ungeprueft"]:
         folder = base_dir / "data" / "working" / folder_name
@@ -77,15 +99,13 @@ def generate_employee_report(base_dir, month, emp_id=None, nickname=None):
             for f in folder.glob(f"{month}_*.csv"):
                 files.append(f)
 
-    print("\n--- DEBUG: gefundene Dateien ---")
-    for f in files:
-        print("  ", f)
-    print("-------------------------------")
-
-    # Passende Datei für den Mitarbeitenden finden
+    # Passende Datei für den Mitarbeitenden finden.
+    # Erwartetes Dateiformat: YYYY-MM_ID_NICKNAME.csv (3 Teile)
+    # Wenn emp_id None ist, wird einfach die erste Monatsdatei genommen.
     target_file = None
     for f in files:
         parts = f.stem.split("_")
+        # prüft, dass es 3 Positionen hat: Datum_ID_Nickname
         if len(parts) < 3:
             continue
 
@@ -94,10 +114,7 @@ def generate_employee_report(base_dir, month, emp_id=None, nickname=None):
         except ValueError:
             continue
 
-        file_nick = parts[2]
-
-        if (emp_id is None or emp_id == file_emp_id) and \
-           (nickname is None or nickname == file_nick):
+        if emp_id is None or emp_id == file_emp_id:
             target_file = f
             break
 
@@ -185,6 +202,8 @@ def generate_employee_report(base_dir, month, emp_id=None, nickname=None):
 def generate_supervisor_overview(base_dir, month):
     """Erstellt eine Übersicht über alle Mitarbeitenden des Monats."""
 
+    users = load_user_data(base_dir)
+
     files = []
     for folder_name in ["geprueft", "ungeprueft"]:
         folder = base_dir / "data" / "working" / folder_name
@@ -193,7 +212,8 @@ def generate_supervisor_overview(base_dir, month):
                 files.append(f)
 
     out_lines = [
-        "emp_id;nickname;status;total_hhmm;overtime_week_hhmm;has_errors;source_file"]
+        "emp_id;klarname;nickname;status;total_hhmm;overtime_week_hhmm;has_errors;source_file"
+    ]
 
     for f in files:
         with f.open(encoding="utf-8", newline="") as fh:
@@ -201,6 +221,9 @@ def generate_supervisor_overview(base_dir, month):
             rows = list(reader)
 
         parts = f.stem.split("_")
+        if len(parts) < 3:
+            continue
+
         emp_id = int(parts[1])
         nick = parts[2]
 
@@ -233,9 +256,12 @@ def generate_supervisor_overview(base_dir, month):
 
         status = "geprueft" if f.parent.name == "geprueft" else "ungeprueft"
 
+        klarname = users.get(emp_id, "unbekannt")
+
         out_lines.append(
-            f"{emp_id};{nick};{status};{mm_to_hhmm(total_min)};"
-            f"{mm_to_hhmm(overtime)};{str(has_errors).lower()};{f.name}"
+            f"{emp_id};{klarname};{nick};{status};"
+            f"{mm_to_hhmm(total_min)};{mm_to_hhmm(overtime)};"
+            f"{str(has_errors).lower()};{f.name}"
         )
 
     out_dir = base_dir / "data" / "reports"

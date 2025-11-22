@@ -39,42 +39,62 @@ def monatsrapport():
     # Monatseingabe mit Validierung
     while True:
         month = input("Monat (YYYY-MM): ").strip()
-        # Grundcheck: Länge 7, Stelle 4 ist '-', Rest Ziffern
         if len(month) == 7 and month[4] == "-" and \
            month[:4].isdigit() and month[5:].isdigit():
-            # prüfen, ob Monat 01–12 ist
             mm = int(month[5:])
             if 1 <= mm <= 12:
                 break
         print("❌ Ungültiges Format! Bitte z. B. 2025-10 eingeben.\n")
 
-    # Eingabe Repportauswahl
+    # Eingabe Report-Auswahl (1 oder 2)
     print("\n┌───────────────────────────────┐")
     print("│   1) Einzelperson             │")
     print("│   2) Vorgesetzten-Übersicht   │")
     print("└───────────────────────────────┘")
+
     mode = input("Bitte wählen (1/2): ").strip()
+    if mode not in ("1", "2"):
+        print("❌ Ungültige Auswahl.")
+        return
 
+    # -------------------------------
+    # Modus 1: Report für eine Person
+    # -------------------------------
     if mode == "1":
-        print("\n==============================")
-        emp = input(
-            "Mitarbeiter-ID eingeben (leer = erste passende Datei nehmen): ").strip()
-        print("\n==============================")
-        nick = input(
-            "Nickname eingeben (optional, z. B. muellerh): ").strip() or None
+        while True:
+            print("\n==============================")
+            emp = input(
+                "Mitarbeiter-ID eingeben (leer = erste passende Datei nehmen): "
+            ).strip()
+            print("==============================")
 
-    # Validierung der Eingabe ob Zahl 1 oder 2
-        if emp:
-            try:
+            # Validierung: Mitarbeiter-ID muss Zahl sein (wenn eingegeben)
+            if emp:
+                if not emp.isdigit():
+                    print("❌ Mitarbeiter-ID muss eine Zahl sein.\n")
+                    continue
                 emp_id = int(emp)
-            except ValueError:
-                print("Mitarbeiter-ID muss eine Zahl sein.")
-                return
-        else:
-            emp_id = None
+            else:
+                emp_id = None  # nur nach Monat suchen
 
-        generate_employee_report(BASE_DIR, month, emp_id=emp_id, nickname=nick)
+            # Report erzeugen
+            result = generate_employee_report(
+                BASE_DIR, month, emp_id=emp_id
+            )
 
+            # generate_employee_report gibt None zurück, wenn keine Datei gefunden wurde
+            if result is None:
+                print("\n❌ Keine passende Datei gefunden für diese Kombination.")
+                print("   Bitte Monat und Mitarbeiter-ID prüfen.\n")
+                # nochmal fragen
+                continue
+
+            # Wenn wir hier sind, hat es geklappt → Schleife beenden
+            break
+
+    # -------------------------------
+    # Modus 2: Übersicht für Vorgesetzte
+    # -------------------------------
     elif mode == "2":
         generate_supervisor_overview(BASE_DIR, month)
 
