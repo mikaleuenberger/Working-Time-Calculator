@@ -19,15 +19,29 @@ def load_user_data(base_dir):
     """Lädt users.json und gibt dict mit ID → Klarname zurück."""
     user_file = base_dir / "users.json"
     if not user_file.exists():
+        print("⚠️ users.json nicht gefunden, Klarname wird auf 'unbekannt' gesetzt.")
         return {}
 
     with user_file.open(encoding="utf-8") as fh:
         data = json.load(fh)
 
-    # Beispiel: {1: "Hans Müller", 2: "Peter Suter"}
     users = {}
-    for u in data["users"]:
-        users[u["id"]] = f"{u['name']} {u['surname']}"
+    for u in data.get("users", []):
+        try:
+            # IDs in deinem JSON sind ints (1,2,3...), das passt.
+            emp_id = int(u["id"])
+        except (KeyError, ValueError, TypeError):
+            continue
+
+        # In deinem JSON ist 'surname' der Vorname und 'name' der Nachname
+        vorname = u.get("surname", "").strip()   # Hans
+        nachname = u.get("name", "").strip()     # Müller
+        klarname = f"{vorname} {nachname}".strip()  # "Hans Müller"
+
+        users[emp_id] = klarname or "unbekannt"
+
+    # Debug, wenn du willst:
+    # print("Geladene Mitarbeiter:", users)
 
     return users
 
@@ -202,6 +216,7 @@ def generate_employee_report(base_dir, month, emp_id=None):
 def generate_supervisor_overview(base_dir, month):
     """Erstellt eine Übersicht über alle Mitarbeitenden des Monats."""
 
+    # Klarname aus users.json laden
     users = load_user_data(base_dir)
 
     files = []
@@ -211,6 +226,7 @@ def generate_supervisor_overview(base_dir, month):
             for f in folder.glob(f"{month}_*.csv"):
                 files.append(f)
 
+    # HEADER
     out_lines = [
         "emp_id;klarname;nickname;status;total_hhmm;overtime_week_hhmm;has_errors;source_file"
     ]

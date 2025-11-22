@@ -1,0 +1,4 @@
+emp_id;klarname;nickname;status;total_hhmm;overtime_week_hhmm;has_errors;source_file
+1;unbekannt;muellerh;ungeprueft;46:10;04:10;true;2025-10_001_muellerh.csv
+2;unbekannt;suterp;ungeprueft;191:50;03:25;true;2025-10_002_suterp.csv
+3;unbekannt;huebnerm;ungeprueft;164:15;00:00;true;2025-10_003_huebnerm.csv
