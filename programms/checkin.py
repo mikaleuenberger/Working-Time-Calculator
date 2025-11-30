@@ -1,5 +1,6 @@
 import json
 import os
+import menu1_5
 
 # zeigt den Speicherpfad, wo Python die Datei sucht:
 print(os.getcwd())
@@ -29,40 +30,35 @@ def load_users(filename="users.json"):
 
 # last_name_input umbenannt zur Klarheit
 def check_credentials(user_id, last_name_input, users_list):
-    """Überprüft, ob die eingegebenen Daten mit einem Benutzer übereinstimmen."""
+    """Überprüft, ob die eingegebenen Daten mit einem Benutzer übereinstimmen.
+       und gibt das User Dictionary zurück.  
+    """
     for user in users_list:
-        # Achten Sie auf die exakte Schreibweise: "last_name"
         if int(user["id"]) == int(user_id) and user["last_name"].casefold() == last_name_input.casefold():
-            return True
-    return False
+            return user  # <--- Wir geben den ganzen User zurück!
+    return None
 
 
-def next_function(user_id):
+def next_function(user_data):
     """Die Funktion, die nach einem erfolgreichen Login ausgeführt wird."""
     print(
-        f"\nLogin erfolgreich! Willkommen, User ID: {user_id}. Hier geht es zur nächsten Funktion.")
-    # Hier kommt Ihr weiterer Code für die Anwendung hin
-    # zum Beispiel: show_user_dashboard(user_id)
+        f"\nLogin erfolgreich! Willkommen, {user_data['surname']} {user_data['last_name']}.")
+
+    # Hier starten wir die Anwendung und übergeben den User
+    menu1_5.main(user_data)
 
 
 def main():
-    # users_data enthält jetzt das volle Dictionary: {"users": [...]}
     users_data = load_users()
-
     if not users_data:
         return
 
-    # Extrahieren Sie hier die tatsächliche Benutzerliste aus dem Dictionary
     users_list = users_data.get("users", [])
-
     if not users_list:
-        print("Keine Benutzerliste unter dem Schlüssel 'users' in der JSON-Datei gefunden.")
         return
 
     print("\n--- Check-In System ---\n")
 
-    # Benutzereingaben abfragen
-    # ACHTUNG: Die Umwandlung zu int() hier kann fehlschlagen, siehe unten!
     try:
         user_id_input = int(input("Bitte geben Sie Ihre ID ein: "))
         last_name_input = input(
@@ -71,26 +67,21 @@ def main():
         print("\nFehler: Die ID muss eine Zahl sein.")
         return main()
 
-    # Daten validieren, übergeben Sie die extrahierte Liste
-    if check_credentials(user_id_input, last_name_input, users_list):
-        next_function(user_id_input)
+    # Hier fangen wir das User-Objekt ab
+    identified_user = check_credentials(
+        user_id_input, last_name_input, users_list)
+
+    if identified_user:  # Wenn identified_user nicht None ist
+        next_function(identified_user)
     else:
-        print("\nFehler bei der Authentifizierung. ID oder Nachname sind falsch.")
+        print("\nFehler bei der Authentifizierung.")
+        # ... (Dein Loop für Retry bleibt gleich) ...
         while True:
-            choice = input("Wollen Sie es nochmals versuchen?\n"
-                           'ja (1), nein (2) oder stop zum Beenden: ').strip().lower()
+            choice = input("Nochmal? (1=ja, 2=nein, stop): ").lower()
             if choice == "1":
                 return main()
-            elif choice == "2":
-                print("Dann schreiben Sie heute die Zeit von Hand auf...")
-                return main()
-            elif choice == "stop":
-                print("Programm wird beendet")
+            elif choice == "stop" or choice == "2":
                 break
-            else:
-                print(
-                    "\nBitte nur 1 oder 2 als Zahlen eingeben oder stop zum Beenden. Beginnen wir von vorn.")
-                return main()
 
 
 if __name__ == "__main__":

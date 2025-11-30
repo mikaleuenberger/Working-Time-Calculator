@@ -10,9 +10,7 @@ import json
 DTFMT = "%d.%m.%Y"
 
 
-# ---------------------------------------------------
 # User-Daten aus users.json laden
-# ---------------------------------------------------
 
 def load_user_data(base_dir):
     """Lädt users.json und gibt dict mit ID → Klarname zurück."""
@@ -54,9 +52,7 @@ def load_user_data(base_dir):
     return users
 
 
-# ---------------------------------------------------
 # Hilfsfunktionen
-# ---------------------------------------------------
 
 def mm_to_hhmm(total_min):
     """Wandelt Minuten in HH:MM um."""
@@ -103,9 +99,7 @@ def row_minutes(row):
     return max(0, gross - pause_min - lunch_min)
 
 
-# ---------------------------------------------------
 # Mitarbeiter-Report
-# ---------------------------------------------------
 
 def generate_employee_report(base_dir, month, emp_id=None):
     """Erstellt Monatsrapport für einen Mitarbeitenden."""
@@ -208,9 +202,7 @@ def generate_employee_report(base_dir, month, emp_id=None):
     return out_path
 
 
-# ---------------------------------------------------
 # Vorgesetzten-Übersicht
-# ---------------------------------------------------
 
 def generate_supervisor_overview(base_dir, month):
     """Erstellt eine Übersicht über alle Mitarbeitenden."""
