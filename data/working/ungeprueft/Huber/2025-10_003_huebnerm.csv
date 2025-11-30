@@ -22,3 +22,6 @@ Datum;Wochentag;Arbeitsbeginn;Pause_min;Mittag_beginn;Mittag_ende;Arbeitsende;Ko
 29.10.2025;Mittwoch;08:00;30;12:00;12:30;16:00;
 30.10.2025;Donnerstag;08:30;30;12:15;12:45;16:45;
 31.10.2025;Freitag;09:00;20;12:30;13:00;17:15;Arbeitszeit nahe 9h-Grenze
+25.11.2025;Dienstag;08:10;30;12:00;12:30;16:10;
+26.11.2025;Mittwoch;08:00;30;12:00;12:30;16:00;
+27.11.2025;Donnerstag;08:30;30;12:15;12:45;16:45;

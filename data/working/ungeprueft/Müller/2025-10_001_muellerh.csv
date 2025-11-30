@@ -4,4 +4,6 @@ Datum;Wochentag;Arbeitsbeginn;Pause_min;Mittag_beginn;Mittag_ende;Arbeitsende;Ko
 08.10.2025;Mittwoch;07:30;20;11:45;12:15;18:45;Mittag zu kurz
 09.10.2025;Donnerstag;08:15;0;;;17:20;
 10.10.2025;Freitag;09:00;45;12:00;13:00;18:00;Überzeit
-
+25.11.2025;Dienstag;08:10;30;12:00;12:30;16:10;
+26.11.2025;Mittwoch;08:00;30;12:00;12:30;16:00;
+27.11.2025;Donnerstag;08:30;30;12:15;12:45;16:45;
