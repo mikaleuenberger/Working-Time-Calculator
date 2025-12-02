@@ -35,7 +35,7 @@ def check_credentials(user_id, last_name_input, users_list):
     """
     for user in users_list:
         if int(user["id"]) == int(user_id) and user["last_name"].casefold() == last_name_input.casefold():
-            return user  # <--- Wir geben den ganzen User zurück!
+            return user
     return None
 
 
@@ -71,11 +71,10 @@ def main():
     identified_user = check_credentials(
         user_id_input, last_name_input, users_list)
 
-    if identified_user:  # Wenn identified_user nicht None ist
+    if identified_user:
         next_function(identified_user)
     else:
         print("\nFehler bei der Authentifizierung.")
-        # ... (Dein Loop für Retry bleibt gleich) ...
         while True:
             choice = input("Nochmal? (1=ja, 2=nein, stop): ").lower()
             if choice == "1":

@@ -147,10 +147,7 @@ def process_time_entry(current_user, report_date):
         print("❌ Fehler bei der Zeitberechnung (Startzeit > Endzeit?).")
 
 
-# ==========================================
 # MENÜFUNKTIONEN FÜR MITARBEITER
-# ==========================================
-
 def arbeitszeiterfassung(current_user):
     """Wrapper für Heute"""
     today = datetime.now()
@@ -350,7 +347,7 @@ def print_report_table(entries, title):
         input("\n(Enter für zurück)")
         return
 
-    # Header: Wir kombinieren alles Wichtige
+    # Header
     # Breite angepasst für bessere Lesbarkeit
     header = f"{'Datum':<12} | {'Tag':<10} | {'Start':<6} | {'Ende':<6} | {'Pause':<6} | {'Ist-Zeit':<8} | {'Kommentar'}"
     line = "-" * len(header)
@@ -486,9 +483,12 @@ def supervisor_approve_report():
         print(f"❌ Fehler: {e}")
 
 
-def monatsrapport():
+def monatsrapport(current_user):
     """Menü für die Erstellung von Monatsrapporten."""
     print("📊 Monatsrapport")
+
+    # 2. Ordnernamen bestimmen (Nur Nachname)
+    user_folder = current_user['last_name']
 
     # Monatseingabe mit einfacher Validierung
     while True:
@@ -529,7 +529,8 @@ def monatsrapport():
                 emp_id = None
 
             # Report erzeugen
-            result = generate_employee_report(BASE_DIR, month, emp_id=emp_id)
+            result = generate_employee_report(
+                BASE_DIR, month, emp_id=emp_id)
 
             # generate_employee_report gibt None zurück, wenn keine Datei gefunden wurde
             if result is None:
@@ -586,7 +587,7 @@ def supervisor_menu_loop(current_user):
         c = input("Auswahl: ").strip()
 
         if c == V_REPORT_GEN:
-            monatsrapport()
+            monatsrapport(current_user)
         elif c == V_APPROVE:
             supervisor_approve_report()
         elif c == V_BEENDEN:

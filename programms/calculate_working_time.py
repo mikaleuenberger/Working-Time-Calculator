@@ -55,7 +55,6 @@ def calculate_work_time(start_str, end_str, lunch_start_str, lunch_end_str, shor
                     f"Mittag zu kurz ({int(lunch_duration_minutes)} min)")
         else:
             # Falls gar keine Mittagspause eingetragen wurde, aber die Arbeitszeit lang ist
-            # (Das ist optional, aber oft sinnvoll. Hier lassen wir es leer oder prüfen auf >6h Arbeit ohne Pause)
             pass
 
         # 3. Gesamte Pause (Mittag + Kurzpause)

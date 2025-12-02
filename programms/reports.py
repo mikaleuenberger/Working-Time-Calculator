@@ -103,12 +103,24 @@ def row_minutes(row):
 
 def generate_employee_report(base_dir, month, emp_id=None):
     """Erstellt Monatsrapport für einen Mitarbeitenden."""
-
+    users = load_user_data(base_dir)
     files = []
-    for folder_name in ["geprueft", "ungeprueft"]:
-        folder = base_dir / "data" / "working" / folder_name
-        if folder.exists():
-            files.extend(folder.glob(month + "_*.csv"))
+# In programms/reports.py, inside generate_employee_report function:
+
+    full_name = users.get(emp_id)
+
+    if full_name:
+        user_folder = full_name.split()[-1]
+
+        print(f"Ordner suchen: {user_folder}")
+
+        for folder_name in ["geprueft", "ungeprueft"]:
+            folder = base_dir / "data" / "working" / folder_name / user_folder
+
+            if folder.exists():
+                files.extend(folder.glob(month + "_*.csv"))
+    else:
+        print(f"Error: User ID {emp_id} nicht gefunden.")
 
     target_file = None
     for f in files:
@@ -210,10 +222,21 @@ def generate_supervisor_overview(base_dir, month):
     users = load_user_data(base_dir)
 
     files = []
-    for folder_name in ["geprueft", "ungeprueft"]:
-        folder = base_dir / "data" / "working" / folder_name
-        if folder.exists():
-            files.extend(folder.glob(month + "_*.csv"))
+
+    full_name = users.get(emp_id)
+
+    if full_name:
+        user_folder = full_name.split()[-1]
+
+        print(f"Ordner suchen: {user_folder}")
+
+        for folder_name in ["geprueft", "ungeprueft"]:
+            folder = base_dir / "data" / "working" / folder_name / user_folder
+
+            if folder.exists():
+                files.extend(folder.glob(month + "_*.csv"))
+    else:
+        print(f"Error: User ID {emp_id} nicht gefunden.")
 
     out_lines = [
         "emp_id;klarname;nickname;status;total_hhmm;overtime_week_hhmm;has_errors;source_file"
