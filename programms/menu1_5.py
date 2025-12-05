@@ -4,9 +4,11 @@ import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 
+
 # Eigene Module
 import calculate_working_time
 from reports import generate_employee_report, generate_supervisor_overview
+from user_admin import benutzerverwaltung_starten
 
 
 # KONFIGURATION & KONSTANTEN
@@ -21,7 +23,8 @@ M_BEENDEN = "5"
 
 V_REPORT_GEN = "1"
 V_APPROVE = "2"
-V_BEENDEN = "3"
+V_USER_JSON = "3"
+V_BEENDEN = "4"
 
 
 # HILFSFUNKTIONEN (Pfad-Logik & Co.)
@@ -576,12 +579,15 @@ def employee_menu_loop(current_user):
         else:
             print("❌ Ungültig.")
 
+# Schleife für Vorgesetzen Menu
+
 
 def supervisor_menu_loop(current_user):
     while True:
         print(f"\n🛡️ VORGESETZTER: {current_user['last_name']}")
         print(f"{V_REPORT_GEN}) Monatsrapport generieren (PDF/Excel)")
         print(f"{V_APPROVE}) Rapport freigeben (Verschieben)")
+        print(f"{V_USER_JSON}) Benutzerverwaltung")
         print(f"{V_BEENDEN}) Beenden")
 
         c = input("Auswahl: ").strip()
@@ -590,6 +596,8 @@ def supervisor_menu_loop(current_user):
             monatsrapport(current_user)
         elif c == V_APPROVE:
             supervisor_approve_report()
+        elif c == V_USER_JSON:
+            benutzerverwaltung_starten()
         elif c == V_BEENDEN:
             break
         else:

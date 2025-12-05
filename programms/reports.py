@@ -1,4 +1,4 @@
-# reports.py
+
 # Dieses Programm erstellt Monatsrapporte für Mitarbeitende
 # und eine Monatsübersicht für Vorgesetzte.
 
@@ -13,10 +13,11 @@ DTFMT = "%d.%m.%Y"
 # User-Daten aus users.json laden
 
 def load_user_data(base_dir):
-    """Lädt users.json und gibt dict mit ID → Klarname zurück."""
+    # Lädt users.json und gibt dict mit ID → Klarname zurück
     candidate_paths = [
         base_dir / "users.json",
         base_dir / "data" / "users.json",
+        base_dir / "programms" / "users.json",
     ]
 
     user_file = None
@@ -44,8 +45,9 @@ def load_user_data(base_dir):
         # surname = Vorname
         # name    = Nachname
         vorname = str(u.get("surname", "")).strip()
-        nachname = str(u.get("name", "")).strip()
-        klarname = (vorname + " " + nachname).strip()
+        nachname = str(u.get("last_name", "")).strip()
+
+        klarname = (vorname + " " + nachname).strip() or "unbekannt"
 
         users[emp_id] = klarname
 
@@ -55,7 +57,7 @@ def load_user_data(base_dir):
 # Hilfsfunktionen
 
 def mm_to_hhmm(total_min):
-    """Wandelt Minuten in HH:MM um."""
+    # Wandelt Minuten in HH:MM um
     sign = "-" if total_min < 0 else ""
     total_min = abs(total_min)
     h, m = divmod(total_min, 60)
@@ -63,7 +65,7 @@ def mm_to_hhmm(total_min):
 
 
 def row_minutes(row):
-    """Berechnet Nettoarbeitszeit für eine CSV-Zeile."""
+    # Berechnet Nettoarbeitszeit für eine CSV-Zeile
     start_str = (row.get("Arbeitsbeginn") or "").strip()
     end_str = (row.get("Arbeitsende") or "").strip()
 
@@ -102,7 +104,7 @@ def row_minutes(row):
 # Mitarbeiter-Report
 
 def generate_employee_report(base_dir, month, emp_id=None):
-    """Erstellt Monatsrapport für einen Mitarbeitenden."""
+    # Erstellt Monatsrapport für einen Mitarbeitenden
     users = load_user_data(base_dir)
     files = []
 # In programms/reports.py, inside generate_employee_report function:
@@ -217,7 +219,7 @@ def generate_employee_report(base_dir, month, emp_id=None):
 # Vorgesetzten-Übersicht
 
 def generate_supervisor_overview(base_dir, month):
-    """Erstellt eine Übersicht über alle Mitarbeitenden."""
+    # Erstellt eine Übersicht über alle Mitarbeitenden
 
     users = load_user_data(base_dir)
 
