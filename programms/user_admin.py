@@ -3,6 +3,7 @@
 
 import json
 from pathlib import Path
+import re
 
 # Projektverzeichnis bestimmen (eine Ebene über /programms)
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -110,8 +111,6 @@ def benutzer_bearbeiten(benutzer):
 
 
 def benutzer_anlegen(daten):
-    # Legt einen neuen Benutzer in der Benutzerliste an.
-
     print("\n--- Neuen Benutzer anlegen ---")
 
     liste = daten["users"]
@@ -120,22 +119,58 @@ def benutzer_anlegen(daten):
     vorhandene_ids = [u.get("id", 0) for u in liste]
     neue_id = max(vorhandene_ids + [0]) + 1
 
-    vor = input("Vorname: ").strip()
-    nach = input("Nachname: ").strip()
-    email = input("Email: ").strip()
-    rolle = input("Rolle (Mitarbeiter/Vorgesetzter): ").strip()
-    if rolle == "":
-        rolle = "Mitarbeiter"
+    # Hilfsfunktion nur Buchstaben
+    def nur_buchstaben(text):
+        return bool(re.match(r"^[A-Za-zÄÖÜäöüß-]+$", text))
 
-    alt = input("Alter: ").strip()
-    try:
-        alter = int(alt)
-    except:
-        alter = 0
+    # Vorname (Pflicht)
+    while True:
+        vor = input("Vorname (Pflicht): ").strip()
+        if vor == "":
+            print("❌ Vorname darf nicht leer sein!")
+            continue
+        if not nur_buchstaben(vor):
+            print("❌ Vorname darf nichnur Buchstaben enthalten!")
+            continue
+        break
 
-    # Achtung: In users.json ist:
-    #   "last_name"    = Nachname
-    #   "surname" = Vorname
+    # Nachname (Pflicht)
+    while True:
+        vor = input("Nachname (Pflicht): ").strip()
+        if vor == "":
+            print("❌ Nachname darf nicht leer sein!")
+            continue
+        if not nur_buchstaben(vor):
+            print("❌ Nachname darf nichnur Buchstaben enthalten!")
+            continue
+        break
+
+    # Email (Pflicht)
+    while True:
+        email = input("Email (Pflicht): ").strip()
+        if email != "" and "@" in email and "." in email:
+            break
+        print("❌ Ungültige Email-Adresse!")
+
+    # Rolle (Pflicht, nur 2 gültige Werte)
+    while True:
+        rolle = input(
+            "Rolle (Mitarbeiter / Vorgesetzter): ").strip().capitalize()
+
+        if rolle in ["Mitarbeiter", "Vorgesetzter"]:
+            break
+
+        print("❌ Ungültige Eingabe! Erlaubt: Mitarbeiter oder Vorgesetzter")
+
+    # Alter (Pflicht, nur Zahlen)
+    while True:
+        alt = input("Alter (Pflicht, nur Zahlen): ").strip()
+        if alt.isdigit():
+            alter = int(alt)
+            break
+        print("❌ Alter muss eine ganze Zahl sein!")
+
+    # Benutzer in JSON-Format speichern
     neuer_benutzer = {
         "id": neue_id,
         "last_name": nach,
@@ -147,6 +182,7 @@ def benutzer_anlegen(daten):
 
     liste.append(neuer_benutzer)
     print(f"✅ Benutzer angelegt: ID={neue_id} | {vor} {nach}")
+
 
 # Hauptmenü der Benutzerverwaltung
 
@@ -174,8 +210,8 @@ def benutzerverwaltung_starten():
                 print(
                     str(i).ljust(3),
                     str(u["id"]).ljust(5),
-                    u["surname"].ljust(15),
-                    u["last_name"].ljust(15),
+                    u["surname"].ljust(15),     # Vorname
+                    u["last_name"].ljust(15),   # Nachname
                     u["business_role"].ljust(15),
                     str(u["age"]).ljust(5)
                 )
