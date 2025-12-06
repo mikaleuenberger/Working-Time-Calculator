@@ -136,11 +136,11 @@ def benutzer_anlegen(daten):
 
     # Nachname (Pflicht)
     while True:
-        vor = input("Nachname (Pflicht): ").strip()
-        if vor == "":
+        nach = input("Nachname (Pflicht): ").strip()
+        if nach == "":
             print("❌ Nachname darf nicht leer sein!")
             continue
-        if not nur_buchstaben(vor):
+        if not nur_buchstaben(nach):
             print("❌ Nachname darf nichnur Buchstaben enthalten!")
             continue
         break
