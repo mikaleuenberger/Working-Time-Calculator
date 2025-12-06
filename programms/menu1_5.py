@@ -111,10 +111,38 @@ def process_time_entry(current_user, report_date):
 
     # 2. Berechnung
     hours_decimal, comment = calculate_working_time.calculate_work_time(
-        start_str, end_str, lunch_start, lunch_end, short_break
+        start_str, end_str, lunch_start, lunch_end, short_break, current_user, report_date
     )
 
     if hours_decimal is not None:
+        MAX_WEEKLY_HOURS = 45.0
+
+        # Bereits erfasste Stunden der Woche (exklusive heute) lesen
+        weekly_hours_so_far = get_weekly_hours_so_far(
+            current_user, report_date)
+
+        # Gesamtstunden mit dem heutigen Tag berechnen
+        total_hours_with_today = weekly_hours_so_far + hours_decimal
+
+        # Ausgabe im Terminal
+        print(
+            f"\nDynamische Wochensumme bis heute: {round(total_hours_with_today, 2)} h")
+
+        if total_hours_with_today > MAX_WEEKLY_HOURS:
+            # Hier findet die dynamische Prüfung statt, bevor der Kommentar gesetzt wird
+            print("\n" + "="*50)
+            print(
+                f"⚠️  ACHTUNG: Überschreitung der Wochenarbeitszeit (max {MAX_WEEKLY_HOURS}h)!")
+            print(f"    Total Woche:     {round(total_hours_with_today, 2)} h")
+            print("="*50 + "\n")
+
+            # Im ORIGINALEN Kommentarfeld der CSV-Zeile festhalten
+            if comment:
+                comment += f"; Wochenstunden > {int(MAX_WEEKLY_HOURS)}h"
+            else:
+                comment = f"Wochenstunden > {int(MAX_WEEKLY_HOURS)}h"
+        # --- ENDE WOCHENPRÜFUNG ---
+
         h = int(hours_decimal)
         m = int((hours_decimal - h) * 60)
         weekday = calculate_working_time.get_german_weekday(report_date)
@@ -134,7 +162,8 @@ def process_time_entry(current_user, report_date):
             "Mittag_beginn": lunch_start,
             "Mittag_ende": lunch_end,
             "Arbeitsende": end_str,
-            "Kommentar": comment
+            "Kommentar": comment,
+            "Netto_Stunden": round(hours_decimal, 2)
         }
 
         # 4. Speichern (Pfad holen wir über unsere Helper-Funktion)
@@ -150,7 +179,49 @@ def process_time_entry(current_user, report_date):
         print("❌ Fehler bei der Zeitberechnung (Startzeit > Endzeit?).")
 
 
+def get_weekly_hours_so_far(current_user, date_obj):
+    """
+    Sammelt alle Netto-Arbeitsstunden der aktuellen Kalenderwoche für den Benutzer.
+    """
+    # Start- und Enddatum der aktuellen Woche bestimmen
+    start_of_week = date_obj - timedelta(days=date_obj.weekday())
+    end_of_week = start_of_week + \
+        timedelta(days=6, hours=23, minutes=59, seconds=59)
+
+    # Relevante Dateien für den Monat(e) dieser Woche finden
+    files_to_check = set()
+    files_to_check.update(get_files_for_month(
+        current_user, start_of_week.year, start_of_week.month))
+    if end_of_week.month != start_of_week.month:
+        files_to_check.update(get_files_for_month(
+            current_user, end_of_week.year, end_of_week.month))
+
+    total_weekly_hours = 0.0
+
+    # Stunden aus allen relevanten Dateien lesen und summieren
+    for filepath in files_to_check:
+        try:
+            with open(filepath, 'r', encoding='utf-8', newline='') as f:
+                reader = csv.DictReader(f, delimiter=';')
+                for row in reader:
+                    entry_date = datetime.strptime(row['Datum'], "%d.%m.%Y")
+
+                    # Prüfen, ob der Eintrag in unsere aktuelle Kalenderwoche fällt UND nicht der heutige Tag ist (falls schon erfasst)
+                    if start_of_week <= entry_date <= end_of_week and entry_date.date() != date_obj.date():
+                        try:
+                            # Wir lesen das neue Feld 'Netto_Stunden' aus (siehe Hinweis unten!)
+                            hours = float(row.get('Netto_Stunden', 0))
+                            total_weekly_hours += hours
+                        except ValueError:
+                            continue
+        except Exception:
+            continue
+
+    return total_weekly_hours
+
 # MENÜFUNKTIONEN FÜR MITARBEITER
+
+
 def arbeitszeiterfassung(current_user):
     """Wrapper für Heute"""
     today = datetime.now()
@@ -363,28 +434,33 @@ def print_report_table(entries, title):
 
     for row in entries:
         try:
-            # --- BERECHNUNG ---
-            s = datetime.strptime(row['Arbeitsbeginn'], "%H:%M")
-            e = datetime.strptime(row['Arbeitsende'], "%H:%M")
+            # 1. VERSUCH: Verwende das bereits berechnete Feld "Netto_Stunden"
+            net_hours_str = (row.get("Netto_Stunden")
+                             or "").strip().replace(',', '.')
+            if net_hours_str:
+                net_min = float(net_hours_str) * 60
+                pause_str = row.get('Pause_min', 'N/A')
+            else:
+                # --- BERECHNUNG ---// # 2. FALLBACK: Führe die alte, manuelle Berechnung durch (ohne 30-Minuten-Regel)
+                s = datetime.strptime(row['Arbeitsbeginn'], "%H:%M")
+                e = datetime.strptime(row['Arbeitsende'], "%H:%M")
 
-            # Nachtschicht Logik
-            if e < s:
-                e += timedelta(days=1)
+                # Nachtschicht Logik
+                if e < s:
+                    e += timedelta(days=1)
+                gross_min = (e - s).total_seconds() / 60
 
-            # Pausen
-            pause_total = int(row['Pause_min'])
+                # Mittagspause addieren falls vorhanden
+                pause_total_manual = int(row.get('Pause_min', 0))
+                if row.get('Mittag_beginn') and row.get('Mittag_ende'):
+                    mb = datetime.strptime(row['Mittag_beginn'], "%H:%M")
+                    me = datetime.strptime(row['Mittag_ende'], "%H:%M")
+                    if me < mb:
+                        me += timedelta(days=1)
+                    pause_total_manual += (me - mb).total_seconds() / 60
 
-            # Mittagspause addieren falls vorhanden
-            if row.get('Mittag_beginn') and row.get('Mittag_ende'):
-                mb = datetime.strptime(row['Mittag_beginn'], "%H:%M")
-                me = datetime.strptime(row['Mittag_ende'], "%H:%M")
-                if me < mb:
-                    me += timedelta(days=1)
-                pause_total += (me - mb).total_seconds() / 60
-
-            # Netto Berechnung
-            gross_min = (e - s).total_seconds() / 60
-            net_min = max(0, gross_min - pause_total)
+                net_min = max(0, gross_min - pause_total_manual)
+                pause_str = str(pause_total_manual)
 
             total_minutes_sum += net_min
 
@@ -393,15 +469,17 @@ def print_report_table(entries, title):
             mins = int(net_min % 60)
             time_str = f"{hours}h {mins}m"
 
-            # Pause als String (ganzzahlig)
-            pause_str = str(int(pause_total))
+        # Stellen Sie sicher, dass 'Pause_min' als String formatiert ist, falls N/A gesetzt wurde
+            if pause_str != 'N/A':
+                pause_str = str(int(float(pause_str)))
 
             # --- AUSGABE ---
             print(f"{row['Datum']:<12} | {row['Wochentag']:<10} | {row['Arbeitsbeginn']:<6} | {row['Arbeitsende']:<6} | {pause_str:<6} | {time_str:<8} | {row['Kommentar']}")
 
-        except (ValueError, TypeError):
+        # Ich habe den Exception-Alias auf 'err' geändert (bessere Praxis)
+        except (ValueError, TypeError, KeyError) as err:
             # Falls eine Zeile defekt ist, geben wir sie roh aus oder markieren Fehler
-            print(f"{row.get('Datum', '???'):<12} | FEHLER IN DATENZEILE")
+            print(f"{row.get('Datum', '???'):<12} | FEHLER IN DATENZEILE ({err})")
 
     print(line)
 

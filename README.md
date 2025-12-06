@@ -8,28 +8,28 @@
 Kommerzielle Lösungen wie SAP sind jedoch teuer. Mit unserer App bieten wir eine **einfache und kostengünstige Alternative** zur Arbeitszeiterfassung.
 
 **Scenario**
-In unserer Python Appikation sollen Arbeitszeiten erfasst und ausgewertet werden können. Ein User kann Arbeitsbeginn und Arbeitsende als Uhrzeiten erfassen und die Pausen als Stunden/Minuten Input.
-Ausgewertet wird die Brutto und die Netto Arbeitszeit. Und die Monatliche Übersicht kann als Liste in der Konsole ausgegeben werden. 
-Die ausgerechneten Zeiten werden mit bestimmten Rules, die festgelegt sind, abgeglichen. Beispiele sind hier: Maximalarbeitszeiten (Max Überstundenanzahl), Einhaltung der Mittags-Pausenzeit (Keine Pausen unter 30 Minuten)
-Der Mitarbeiter soll ich die Möglichkeit haben, sein Alter einmalig zu hinterlegen, damit die für ihn gültigen Regeln automatisch angewendet werden.
+In unserer Python Appikation sollen Arbeitszeiten erfasst und ausgewertet werden können. Ein User kann Arbeitsbeginn und Arbeitsende als Uhrzeiten erfassen und die Pausen als Stunden/Minuten Input. Ausgewertet wird die Brutto und die Netto Arbeitszeit. 
+Die ausgerechneten Zeiten werden mit bestimmten Rules, die festgelegt sind, abgeglichen. Beispiele sind hier: Maximalarbeitszeiten (Max Überstundenanzahl), Einhaltung der Mittags-Pausenzeit (Keine Pausen unter 30 Minuten).
+Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit die gültigen Regeln (z.B. Jugendschutzgesetz) automatisch angewendet werden.
 
 **User stories:**
-1. Als User möchte ich meine Arbeitszeit exakt eingeben (stempeln) (hh:mm:ss) 
-2. Ich möchte meine Tages-, Wochen- und Monatsarbeitszeit auf dem Blatt sehen (entweder Stand jetzt inkl. verbleibende Soll-Arbeitszeit oder Eingabe einzelner Tage und Auswertung des ganzen Monats mit bestehenden Daten) 
-3. Als User möchte ich eine Fehlermeldung, wenn ich die gesetzliche mindest Mittagszeit unterschreitet 
+1. Als User möchte ich meine Arbeitszeit exakt eingeben (hh:mm) 
+2. Ich möchte meine Tages-, Wochen- und Monatsarbeitszeit auf dem Blatt sehen (Eingabe einzelner Tage und Auswertung der Woche oder des Monats mit bestehenden Daten) 
+3. Als User möchte ich eine Fehlermeldung, wenn ich die gesetzliche mindest Mittagszeit unterschreite
 4. Ich möchte als User Pausen in mm eintragen können, diese Eingabe ist jedoch optional 
 5. Ich möchte als User sehen, wie viele Überstunden ich habe (ab Wochenarbeitszeit 42h) 
 6. Ich möchte als User eine Warnmeldung bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist 
-7. Ich möchte mich als User Authentifizieren (als Nickname) können bei der Verwendung des Tools, mit Personalnummer oder ähnl. 
-8. Als Vorgesetzter will ich Ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter.  
-9. Als minderjähriger Mitarbeiter möchte ich nicht über 9h arbeiten und keine Nacht- oder Wochenendarbeit erfassen können, damit die Jugendarbeitsschutzgesetze automatisch eingehalten werden.
+7. Ich möchte mich als User bei der Verwendung des Tools mittels ID und Nachname authentifizieren 
+8. Als Vorgesetzter will ich Ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter 
+9. Als minderjähriger Mitarbeiter darf ich nicht über 9h arbeiten und keine Nacht- oder Wochenendarbeit machen, damit die Jugendarbeitsschutzgesetze eingehalten werden. Ausnahmen können begründet vorkommen oder es können nachträglich die Zeiten korrigiert werden
 
 **Use cases:**
-- Benutzernamen und Alter erfassen  
+- Authentifizieren mittels ID und Nachnahmen  
 - Arbeitszeiten und Pausen eingeben  
 - Eingaben validieren  
-- Zeitrapport auf Monatsbasis ausgeben  
+- Zeitrapport auf Wochen- und Monatsbasis ausgeben  
 - Kommentare bei Regelverletzungen anzeigen
+- Unterschiedliche Menüs für Mitarbeiter und Vorgesetzte
 
 
 ---
@@ -48,10 +48,9 @@ Jede Applikation muss die folgenden 3 Kriterien erfüllen, um akzeptiert zu werd
 
 ---
 Die Applikation interagiert mit dem User in der Konsole. Der User kann in der App:
-- Name des Users eingeben
+- Nachname und ID des Users eingeben
 - Zeiteingabe
 - Eingabe von Pausen
-- Eingabe des Alters
 - Input Überprüfung: gemäss Data Validation
 - Ausgabe meines Zeitrapports auf Monatsbasis
 - Kommentare bei Verletzungen der Vorgaben
@@ -61,25 +60,21 @@ Die Applikation interagiert mit dem User in der Konsole. Der User kann in der Ap
 
 ### 2. Daten Überprüfung
 
-Die Applikation prüft den Upload der user-Datei und Dateneingabe.
+- **user validation:** Der user gibt seine ID und Nachnamen ein. Das Check-In prüft, ob beide Eingaben gemäss jscon-Dictionary (Mitarbeiterdaten) übereinstimmen. ID muss aus Zahlen bestehen, Name aus Buchstaben
 
-- **file selection:** Der user muss ein .csv file eingeben, alle anderen Datei-Typen werden nicht unterstützt und mit einer Fehlermeldung abgeblockt.
-
-- **day validation:** Der user muss als Wochentage "Montag, Dienstag, Mittwoch, Donnerstag, Freitag, Samstag oder Sonntag" eingeben, alle anderen Eingaben werden nicht unterstützt und mit einer Fehlermeldung abgeblockt.
-
-- **user validation:** Der user gibt seinen nickname ein, welcher nur aus Buchstaben bestehen darf
-
-- **age validation:** Der user gibt sein Alter ein, welche nur ganze Zahlen sein können und für <=18 spezielle Bedingungen gelten: Arbeitszeit pro Tag max. 9h, keine Arbeit an Wochenenden, keine Arbeit nach 21:00 Uhr
+- **age validation:** Ist der User minderjährig, erhält er Kommentare bei Tagesarbeitszeit über 9h, bei Nachtarbeit (22:00-06:00) und bei Wochenendarbeit
 
 - **time input validation:** Die Arbeitszeit darf nur im Format hh:mm erfasst werden
 
-- **break validation:** Der user gibt seine Pausenzeiten in mm ein, wobei diese nicht zu Arbeitsbeginn oder Ende sein dürfen. Weiter muss die Mittagspause >=30min sein.
+- **break validation:** Der user gibt seine Pausenzeiten in mm ein. Ohne Mittagspause wird das gesetzliche Minimum von 30min abgezogen, ausser es wird Nachtarbeit erkannt
 
-- **work time validation:** Die vorgesehene Arbeitszeit ist 42h. Alles darüber gilt als Überstunden, vorgesehen aber nicht verboten sind Überstunden ab 45h.
+- **work time validation:** Die vorgesehene Arbeitszeit ist 42h. Alles darüber gilt als Überstunden. Nicht vorgesehen aber nicht verboten sind Überstunden ab 45h
+
+- **input validation:** Diverse Eingaben im Check-In und im Menü werden auf das Format geprüft, bei Bedarf korrigiert (Gross-/Kleinschreibung) oder bei falscher Eingabe kommentiert und zur neuen Eingabe aufgefordert
 
 ### 3. File Processing
 
-Die Applikation liest und schreibt Daten mit dem Input file:
+Die Applikation liest und schreibt Daten mit bestehenden .csv-Dateien als Grundlage für die letzten Zeiterfassungen:
 
 - **Input file:** `arbeitszeiterfassung.csv` — Enthält die Zeiteingaben des Benutzers, ein Tag pro Zeile im Format `Wochentag;Arbeitsbeginn;Pause;Arbeitsende;Zeitsaldo`.
 	- Beispiel:
@@ -109,7 +104,8 @@ Die Applikation liest und schreibt Daten mit dem Input file:
 		Monats-Soll:            168:00
 		Gleitzeit-Saldo:        -142.28
 		```
-		- Der Output dient dem Mitarbeiter wie auch dem Vorgesetzen als Übersicht über die geleistete Arbeitsstunden, den Gleitzeitssaldo sowie der Einhaltung gesetzlicher Vorgaben. 
+		- Der Output dient dem Vorgesetzen als Übersicht über die geleistete Arbeitsstunden, den Gleitzeitssaldo sowie der Einhaltung gesetzlicher Vorgaben. 
+		- Der Mitarbeiter bekommt kein Output-File, sondern die Wochen- und Monatsübersicht direkt in der Konsole
 
 ## ⚙️ Implementation
 > ⚠️ Dieser Abschnitt ist noch in Bearbeitung und folgt in der finalen Version des Dokuments.
@@ -153,9 +149,9 @@ These libraries are part of the Python standard library, so no external installa
 
 | Name               | Contribution |
 | ------------------ | ------------ |
-| Flavio Waser       | ..           |
-| Kristina Schaffner | ..           |
-| Mika Leuenberger   | ..           |
+| Flavio Waser       | Menü für Mitarbeiter und Vorgesetzte, Erstellen der Monatsrapports als .csv-File oder Ausgabe in Konsole je nach Rolle, Mutation der Mitarbeiter-Daten durch Vorgesetzten        |
+| Kristina Schaffner | User-File, Check-In, Validierung Minderjährige, automatischer Abzug Mittagszeit, Validierung Wochenarbeitszeit über 45h, Überprüfung und Überarbeitung Readme-File           |
+| Mika Leuenberger   | Zeiterfassung, Verschieben der Dateien nach Prüfung durch Vorgesetzten, diverse Validierungen bei Eingabe der Daten (Datum, Wochentage, Erkennung ob Woche über Monatsende geht, maximale Tagesarbeitszeit 12h, Mittagspause mind. 30min)           |
 
 
 ## 🤝 Contributing

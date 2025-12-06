@@ -65,6 +65,17 @@ def mm_to_hhmm(total_min):
 
 
 def row_minutes(row):
+    # NEU: Zuerst versuchen, den bereits berechneten Wert 'Netto_Stunden' zu nutzen
+    net_hours_str = (row.get("Netto_Stunden") or "").strip().replace(',', '.')
+    try:
+        # Konvertiere den String (mit eventuellem Komma oder Punkt) in eine Float-Stundenzahl
+        net_hours_decimal = float(net_hours_str)
+        # Gib die Stunden als ganze Minuten zurück (wie der Rest der Funktion erwartet)
+        return int(net_hours_decimal * 60)
+    except ValueError:
+        # Wenn das Feld 'Netto_Stunden' leer, nicht vorhanden oder fehlerhaft ist,
+        # fallback zur alten Methode der Neuberechnung aus Einzelzeiten.
+        pass
     # Berechnet Nettoarbeitszeit für eine CSV-Zeile
     start_str = (row.get("Arbeitsbeginn") or "").strip()
     end_str = (row.get("Arbeitsende") or "").strip()
