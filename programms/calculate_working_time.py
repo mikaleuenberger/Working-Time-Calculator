@@ -1,4 +1,5 @@
-# Funktion zur Berechnung der Arbeitszeit mit eingabe von Arbeitsbeginn, Arbeitsende und Pausenzeit
+# Funktion zur Berechnung der Arbeitszeit
+# mit eingabe von Arbeitsbeginn, Arbeitsende und Pausenzeit
 
 from datetime import datetime, timedelta
 import re
@@ -7,12 +8,26 @@ import os
 
 # Konstanten
 LOG_FILE = "work_log.csv"
-HEADERS = ["Datum", "Wochentag", "Arbeitsbeginn", "Pause_min",
-           "Mittag_beginn", "Mittag_ende", "Arbeitsende", "Kommentar", "Netto_Stunden"]
+HEADERS = [
+    "Datum",
+    "Wochentag",
+    "Arbeitsbeginn",
+    "Pause_min",
+    "Mittag_beginn",
+    "Mittag_ende",
+    "Arbeitsende",
+    "Kommentar",
+    "Netto_Stunden",
+]
 
 WEEKDAYS = {
-    0: "Montag", 1: "Dienstag", 2: "Mittwoch", 3: "Donnerstag",
-    4: "Freitag", 5: "Samstag", 6: "Sonntag"
+    0: "Montag",
+    1: "Dienstag",
+    2: "Mittwoch",
+    3: "Donnerstag",
+    4: "Freitag",
+    5: "Samstag",
+    6: "Sonntag",
 }
 
 # Konstanten für Nachtarbeit (zwischen 22:00 und 06:00 für Minderjährige)
@@ -20,9 +35,18 @@ NIGHT_START_HOUR = 22
 NIGHT_END_HOUR = 6
 
 
-def calculate_work_time(start_str, end_str, lunch_start_str, lunch_end_str, short_break_min, current_user, work_date_obj):
+def calculate_work_time(
+    start_str,
+    end_str,
+    lunch_start_str,
+    lunch_end_str,
+    short_break_min,
+    current_user,
+    work_date_obj,
+):
     """
-    Berechnet die Arbeitszeit basierend auf Start, Ende, Mittagspause und Kurzpausen.
+    Berechnet die Arbeitszeit basierend auf Start,
+    Ende, Mittagspause und Kurzpausen.
     Gibt Arbeitsstunden (dezimal), Arbeitsminuten und einen Kommentar zurück.
     """
     time_fmt = "%H:%M"
@@ -57,26 +81,35 @@ def calculate_work_time(start_str, end_str, lunch_start_str, lunch_end_str, shor
             # --- REGEL 1: Mittagspause muss mindestens 30 Min sein ---
             if lunch_duration_minutes < MINDEST_PAUSE_MIN:
                 comment_parts.append(
-                    f"Mittag zu kurz ({int(lunch_duration_minutes)} min)")
+                    f"Mittag zu kurz ({int(lunch_duration_minutes)} min)"
+                )
 
-        elif gross_work_duration.total_seconds() >= (6 * 3600):  # Nur ab 6h Bruttozeit prüfen
+        elif gross_work_duration.total_seconds() >= (
+            6 * 3600
+        ):  # Nur ab 6h Bruttozeit prüfen
 
             # NEUE PRÜFUNG: Ist es eine Nachtschicht?
-            # <- Prüft, ob über Mitternacht gearbeitet wurde (Nachtschicht-Indikator)
+            # <- Prüft,
+            # ob über Mitternacht gearbeitet wurde (Nachtschicht-Indikator)
             if t_end < t_start:
                 lunch_duration_minutes = 0
                 comment_parts.append(
-                    "Nachtschicht erkannt: Kein automatischer Mittagsabzug.")
+                    "Nachtschicht erkannt: Kein automatischer Mittagsabzug."
+                )
             else:
                 lunch_duration_minutes = MINDEST_PAUSE_MIN
                 comment_parts.append(
-                    f"Keine Mittagszeit erfasst, {MINDEST_PAUSE_MIN} min automatisch abgezogen")
+                    f"Keine Mittagszeit erfasst,"
+                    + " {MINDEST_PAUSE_MIN} min automatisch abgezogen"
+                )
 
         # 3. Gesamte Pause (Mittag + Kurzpause)
         total_break_minutes = lunch_duration_minutes + short_break_min
 
         # 4. Netto-Arbeitszeit berechnen
-        net_work_seconds = gross_work_duration.total_seconds() - (total_break_minutes * 60)
+        net_work_seconds = gross_work_duration.total_seconds() - (
+            total_break_minutes * 60
+        )
         net_work_hours_decimal = net_work_seconds / 3600
 
         # 5. --- REGEL 2: Arbeitszeit darf nicht > 12 Stunden sein ---
@@ -88,11 +121,14 @@ def calculate_work_time(start_str, end_str, lunch_start_str, lunch_end_str, shor
             comment_parts.append("Maximalarbeitszeit Minderjährige: 9h")
 
         # Prüfung auf Nachtarbeit
-        # Wir verwenden die Daten der t_start/t_end Objekte (standardmässig 1900-01-01 / 1900-01-02)
+        # Wir verwenden die Daten der t_start/t_end
+        # Objekte (standardmässig 1900-01-01 / 1900-01-02)
         night_start = t_start.replace(
-            hour=NIGHT_START_HOUR, minute=0, second=0)
+            hour=NIGHT_START_HOUR, minute=0, second=0
+        )
         night_end = t_start.replace(
-            hour=NIGHT_END_HOUR, minute=0, second=0) + timedelta(days=1)
+            hour=NIGHT_END_HOUR, minute=0, second=0
+        ) + timedelta(days=1)
 
         # Überlappung des Arbeitszeitraums mit dem Nachtzeitraum berechnen
         overlap_start = max(t_start, night_start)
@@ -100,15 +136,19 @@ def calculate_work_time(start_str, end_str, lunch_start_str, lunch_end_str, shor
 
         if current_user["age"] < 18 and overlap_start < overlap_end:
             overlap_duration_min = (
-                overlap_end - overlap_start).total_seconds() / 60
+                overlap_end - overlap_start
+            ).total_seconds() / 60
             if overlap_duration_min > 0:
                 comment_parts.append(
-                    f"Nachtarbeit ({int(overlap_duration_min)} min) für Minderjährige (verboten 22-6 Uhr)")
+                    f"Nachtarbeit ({int(overlap_duration_min)} min)"
+                    + "für Minderjährige (verboten 22-6 Uhr)"
+                )
 
         # keine Wochenendarbeit für Minderjährige
         if current_user["age"] < 18 and work_date_obj.weekday() in [5, 6]:
             comment_parts.append(
-                "Keine Wochenendarbeit für Minderjährige (Sa/So)")
+                "Keine Wochenendarbeit für Minderjährige (Sa/So)"
+            )
 
         # Kommentar zusammenbauen
         final_comment = "; ".join(comment_parts)
@@ -140,8 +180,8 @@ def save_to_csv(data_row: dict, filepath: str):
     file_exists = os.path.exists(filepath)
 
     try:
-        with open(filepath, 'a', newline='', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, fieldnames=HEADERS, delimiter=';')
+        with open(filepath, "a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=HEADERS, delimiter=";")
 
             if not file_exists:
                 writer.writeheader()

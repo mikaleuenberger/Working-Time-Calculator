@@ -21,8 +21,10 @@ def ermittle_users_json_pfad():
     moegliche_pfade = [
         # -> /.../programms/users.json  (gleiche wie checkin.py)
         script_dir / "users.json",
-        BASE_DIR / "users.json",          # Fallback: Projekt-Root
-        BASE_DIR / "data" / "users.json"  # weiterer Fallback: /data/users.json
+        BASE_DIR / "users.json",  # Fallback: Projekt-Root
+        BASE_DIR
+        / "data"
+        / "users.json",  # weiterer Fallback: /data/users.json
     ]
 
     for p in moegliche_pfade:
@@ -44,7 +46,10 @@ def lade_users():
 
     # Wenn die Datei noch nicht existiert, leere Struktur zurückgeben
     if not pfad.exists():
-        print("⚠️  Die Datei 'users.json' existiert noch nicht. Es wird eine neue Datei angelegt.")
+        print(
+            "⚠️  Die Datei 'users.json' existiert noch nicht."
+            + " Es wird eine neue Datei angelegt."
+        )
         return {"users": []}, pfad
 
     # Datei öffnen und JSON-Daten einlesen
@@ -59,12 +64,14 @@ def lade_users():
 
 
 def speichere_users(daten, pfad):
-    # Speichert die Benutzerliste (daten) in der Datei users.json am angegebenen Pfad.
+    # Speichert die Benutzerliste (daten)
+    # in der Datei users.json am angegebenen Pfad.
 
     with pfad.open("w", encoding="utf-8") as f:
         json.dump(daten, f, indent=4, ensure_ascii=False)
 
     print(f"💾 Benutzerdatei gespeichert: {pfad}")
+
 
 # Funktionen zum Bearbeiten und Anlegen von Benutzern
 
@@ -75,7 +82,9 @@ def benutzer_bearbeiten(benutzer):
 
     print("\n--- Benutzer bearbeiten ---")
     print(
-        f"Aktuell: ID={benutzer['id']} | {benutzer['surname']} {benutzer['last_name']}")
+        f"Aktuell: ID={benutzer['id']} | "
+        f"{benutzer['surname']} {benutzer['last_name']}"
+    )
     print(f"Email:  {benutzer['email']}")
     print(f"Rolle:  {benutzer['business_role']}")
     print(f"Alter:  {benutzer['age']}")
@@ -97,7 +106,8 @@ def benutzer_bearbeiten(benutzer):
 
     # Rolle (Mitarbeiter oder Vorgesetzter)
     rolle = input(
-        f"Rolle (Mitarbeiter/Vorgesetzter) [{benutzer['business_role']}]: ").strip()
+        f"Rolle (Mitarbeiter/Vorgesetzter) [{benutzer['business_role']}]: "
+    ).strip()
     if rolle:
         benutzer["business_role"] = rolle
 
@@ -106,7 +116,7 @@ def benutzer_bearbeiten(benutzer):
     if alt:
         try:
             benutzer["age"] = int(alt)
-        except:
+        except Exception:
             print("⚠️  Ungültige Eingabe – Alter wurde nicht geändert.")
 
 
@@ -154,8 +164,9 @@ def benutzer_anlegen(daten):
 
     # Rolle (Pflicht, nur 2 gültige Werte)
     while True:
-        rolle = input(
-            "Rolle (Mitarbeiter / Vorgesetzter): ").strip().capitalize()
+        rolle = (
+            input("Rolle (Mitarbeiter / Vorgesetzter): ").strip().capitalize()
+        )
 
         if rolle in ["Mitarbeiter", "Vorgesetzter"]:
             break
@@ -177,7 +188,7 @@ def benutzer_anlegen(daten):
         "surname": vor,
         "email": email,
         "business_role": rolle,
-        "age": alter
+        "age": alter,
     }
 
     liste.append(neuer_benutzer)
@@ -203,17 +214,22 @@ def benutzerverwaltung_starten():
         if not liste:
             print("Keine Benutzer vorhanden.")
         else:
-            print("Nr  ID   Vorname        Nachname       Rolle            Alter")
-            print("--------------------------------------------------------------")
+            print(
+                "Nr  ID   Vorname        Nachname       Rolle            Alter"
+            )
+            print(
+                "-----------------------------"
+                + "---------------------------------"
+            )
             # Alle Benutzer auflisten
             for i, u in enumerate(liste, start=1):
                 print(
                     str(i).ljust(3),
                     str(u["id"]).ljust(5),
-                    u["surname"].ljust(15),     # Vorname
-                    u["last_name"].ljust(15),   # Nachname
+                    u["surname"].ljust(15),  # Vorname
+                    u["last_name"].ljust(15),  # Nachname
                     u["business_role"].ljust(15),
-                    str(u["age"]).ljust(5)
+                    str(u["age"]).ljust(5),
                 )
 
         print("\nOptionen:")
