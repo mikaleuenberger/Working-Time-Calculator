@@ -534,11 +534,9 @@ def print_report_table(entries, title):
 
             # --- AUSGABE ---
             print(
-                formatted_row=(
-                    f"{row['Datum']:<12} | {row['Wochentag']:<10} | "
-                    f"{row['Arbeitsbeginn']:<6} | {row['Arbeitsende']:<6} | "
-                    f"{pause_str:<6} | {time_str:<8} | {row['Kommentar']}"
-                )
+                f"{row['Datum']:<12} | {row['Wochentag']:<10} | "
+                f"{row['Arbeitsbeginn']:<6} | {row['Arbeitsende']:<6} | "
+                f"{pause_str:<6} | {time_str:<8} | {row['Kommentar']}"
             )
 
         # Ich habe den Exception-Alias

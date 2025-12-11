@@ -140,7 +140,7 @@ def benutzer_anlegen(daten):
             print("❌ Vorname darf nicht leer sein!")
             continue
         if not nur_buchstaben(vor):
-            print("❌ Vorname darf nichnur Buchstaben enthalten!")
+            print("❌ Vorname darf nicht nur Buchstaben enthalten!")
             continue
         break
 
