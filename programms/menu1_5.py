@@ -57,10 +57,10 @@ def get_user_paths(current_user, date_obj):
 
     filename = f"{date_part}_{id_part}_{clean_name}{raw_first}.csv"
 
-    # 2. Ordnernamen bestimmen (Nur Nachname)
+    # Ordnernamen bestimmen (Nur Nachname)
     user_folder = current_user["last_name"]
 
-    # 3. Pfade bauen
+    # Pfade bauen
     base_working = os.path.join(BASE_DIR, "data", "working")
 
     path_ungeprueft_dir = os.path.join(base_working, "ungeprueft", user_folder)
@@ -175,7 +175,7 @@ def process_time_entry(current_user, report_date):
             print(f"⚠️  Hinweis: {comment}")
         print("--------------------------------")
 
-        # 3. Daten vorbereiten
+        # Daten vorbereiten
         data_to_save = {
             "Datum": date_str_display,
             "Wochentag": weekday,
@@ -188,7 +188,7 @@ def process_time_entry(current_user, report_date):
             "Netto_Stunden": round(hours_decimal, 2),
         }
 
-        # 4. Speichern (Pfad holen wir über unsere Helper-Funktion)
+        # Speichern (Pfad wird über die Helper-Funktion geholt)
         _, user_folder, target_file, _ = get_user_paths(
             current_user, report_date
         )
@@ -237,15 +237,14 @@ def get_weekly_hours_so_far(current_user, date_obj):
                 for row in reader:
                     entry_date = datetime.strptime(row["Datum"], "%d.%m.%Y")
 
-                    # Prüfen, ob der Eintrag in unsere aktuelle Kalenderwoche
+                    # Prüfen, ob der Eintrag in die aktuelle Kalenderwoche
                     # fällt UND nicht der heutige Tag ist (falls schon erfasst)
                     if (
                         start_of_week <= entry_date <= end_of_week
                         and entry_date.date() != date_obj.date()
                     ):
                         try:
-                            # Wir lesen das neue Feld 'Netto_Stunden'
-                            # aus (siehe Hinweis unten!)
+                            # Auslesen vom Feld 'Netto_Stunden'
                             hours = float(row.get("Netto_Stunden", 0))
                             total_weekly_hours += hours
                         except ValueError:
@@ -408,20 +407,20 @@ def show_employee_weekly_report(current_user):
 
     date_label = (
         f"KW {start_week.isocalendar()[1]} "
-        f"({start_week.strftime('%d.%m.')} bis"
-        + " {end_week.strftime('%d.%m.%Y')})"
+        f"({start_week.strftime('%d.%m.')} bis {end_week.strftime('%d.%m.%Y')}"
     )
-    # --- DATEIEN LADEN (Trick für Monatsübergänge) ---
-    # Eine Woche kann im Jan anfangen und im Feb aufhören.
-    # Wir laden Dateien vom Monat des Montags UND vom Monat des Sonntags.
+
+    # DATEIEN LADEN
+    # Eine Woche kann im Januar anfangen und im Februar aufhören.
+    # Wir laden Dateien vom Monat des Montags und vom Monat des Sonntags.
     files = []
 
-    # 1. Monat (Start der Woche)
+    # Monat (Start der Woche)
     files.extend(
         get_files_for_month(current_user, start_week.year, start_week.month)
     )
 
-    # 2. Monat (Ende der Woche), falls unterschiedlich
+    # Monat (Ende der Woche), falls unterschiedlich
     if start_week.month != end_week.month:
         files.extend(
             get_files_for_month(current_user, end_week.year, end_week.month)
@@ -474,7 +473,6 @@ def print_report_table(entries, title):
         return
 
     # Header
-    # Breite angepasst für bessere Lesbarkeit
     header = (
         f"{'Datum':<12} | {'Tag':<10} | {'Start':<6} | {'Ende':<6} | "
         f"{'Pause':<6} | {'Ist-Zeit':<8} | {'Kommentar'}"
@@ -489,7 +487,6 @@ def print_report_table(entries, title):
 
     for row in entries:
         try:
-            # 1. VERSUCH: Verwende das bereits berechnete Feld "Netto_Stunden"
             net_hours_str = (
                 (row.get("Netto_Stunden") or "").strip().replace(",", ".")
             )
@@ -497,9 +494,7 @@ def print_report_table(entries, title):
                 net_min = float(net_hours_str) * 60
                 pause_str = row.get("Pause_min", "N/A")
             else:
-                # --- BERECHNUNG ---
-                # 2. FALLBACK: Führe die alte,
-                # manuelle Berechnung durch (ohne 30-Minuten-Regel)
+                # Berechnung
                 s = datetime.strptime(row["Arbeitsbeginn"], "%H:%M")
                 e = datetime.strptime(row["Arbeitsende"], "%H:%M")
 
@@ -527,8 +522,6 @@ def print_report_table(entries, title):
             mins = int(net_min % 60)
             time_str = f"{hours}h {mins}m"
 
-            # Stellen Sie sicher, dass 'Pause_min' als String formatiert ist,
-            # falls N/A gesetzt wurde
             if pause_str != "N/A":
                 pause_str = str(int(float(pause_str)))
 
@@ -539,11 +532,9 @@ def print_report_table(entries, title):
                 f"{pause_str:<6} | {time_str:<8} | {row['Kommentar']}"
             )
 
-        # Ich habe den Exception-Alias
-        # auf 'err' geändert (bessere Praxis)
         except (ValueError, TypeError, KeyError) as err:
-            # Falls eine Zeile defekt ist,
-            # geben wir sie roh aus oder markieren Fehler
+            # Falls eine Zeile unvollständig ist,
+            # wird der Fehler markiert
             print(
                 f"{row.get('Datum', '???'):<12} | FEHLER IN DATENZEILE ({err})"
             )
@@ -572,7 +563,7 @@ def supervisor_approve_report():
         print("Verzeichnis 'ungeprueft' existiert nicht oder ist leer.")
         return
 
-    # 1. User Ordner anzeigen
+    # User Ordner anzeigen
     users = [
         d
         for d in os.listdir(src_base)
@@ -598,8 +589,8 @@ def supervisor_approve_report():
         user_src = os.path.join(src_base, selected_user)
         user_dst = os.path.join(dst_base, selected_user)
 
-        # 2. Verfügbare Monate in diesem Ordner finden
-        # Wir schauen uns alle Dateinamen an und extrahieren YYYY-MM
+        # Verfügbare Monate in diesem Ordner finden
+        # von allen Dateien werden diese mit yyyy-mm entnommen
         files_in_folder = [
             f
             for f in os.listdir(user_src)
@@ -609,7 +600,7 @@ def supervisor_approve_report():
         available_months = set()
         for f in files_in_folder:
             # Erwartetes Format: YYYY-MM_...
-            # Wir nehmen einfach die ersten 7 Zeichen
+            # Hier werden die ersten 7 Zeichen entnommen
             if len(f) >= 7 and f[4] == "-":
                 month_prefix = f[:7]  # z.B. "2025-10"
                 available_months.add(month_prefix)
@@ -633,11 +624,11 @@ def supervisor_approve_report():
 
         target_month = sorted_months[mc - 1]
 
-        # 3. Zielordner vorbereiten
+        # Zielordner vorbereiten
         if not os.path.exists(user_dst):
             os.makedirs(user_dst)
 
-        # 4. Dateien verschieben, die mit dem gewählten Monat beginnen
+        # Dateien verschieben, die mit dem gewählten Monat beginnen
         files_to_move = [
             f for f in files_in_folder if f.startswith(target_month)
         ]
@@ -668,7 +659,7 @@ def supervisor_approve_report():
 
         print(f"\nFertig. {moved_count} Dateien wurden freigegeben.")
 
-        # 5. Aufräumen: Wenn der Quellordner jetzt leer ist, löschen wir ihn
+        # Wenn der Quellordner jetzt leer ist, wird er gelöscht
         remaining_files = os.listdir(user_src)
         if not remaining_files:
             try:
@@ -695,8 +686,10 @@ def monatsrapport(current_user):
 
     # Monatseingabe mit einfacher Validierung
     while True:
-        month = input("Monat (YYYY-MM): ").strip()
-        # Prüfen: Länge 7, an Stelle 4 ein '-', Jahr und Monat sind Ziffern
+        month = input("Monat (YYYY-MM) oder 'x' für Abbruch: ").strip()
+        if month.lower() == "x":
+            return
+
         if (
             len(month) == 7
             and month[4] == "-"
@@ -739,7 +732,7 @@ def monatsrapport(current_user):
             # damit der User neue Angaben machen kann
             continue
 
-        # Wenn wir hier sind, wurde ein Report erstellt → Schleife beenden
+        # Report wurde erstellt → Schleife beenden
         break
 
     else:
