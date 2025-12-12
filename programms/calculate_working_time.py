@@ -88,8 +88,7 @@ def calculate_work_time(
             6 * 3600
         ):  # Nur ab 6h Bruttozeit prüfen
 
-            # NEUE PRÜFUNG: Ist es eine Nachtschicht?
-            # <- Prüft,
+            # Prüft,
             # ob über Mitternacht gearbeitet wurde (Nachtschicht-Indikator)
             if t_end < t_start:
                 lunch_duration_minutes = 0
@@ -100,19 +99,19 @@ def calculate_work_time(
                 lunch_duration_minutes = MINDEST_PAUSE_MIN
                 comment_parts.append(
                     f"Keine Mittagszeit erfasst,"
-                    + " {MINDEST_PAUSE_MIN} min automatisch abgezogen"
+                    f" {MINDEST_PAUSE_MIN} min automatisch abgezogen"
                 )
 
-        # 3. Gesamte Pause (Mittag + Kurzpause)
+        # Gesamte Pause (Mittag + Kurzpause)
         total_break_minutes = lunch_duration_minutes + short_break_min
 
-        # 4. Netto-Arbeitszeit berechnen
+        # Netto-Arbeitszeit berechnen
         net_work_seconds = gross_work_duration.total_seconds() - (
             total_break_minutes * 60
         )
         net_work_hours_decimal = net_work_seconds / 3600
 
-        # 5. --- REGEL 2: Arbeitszeit darf nicht > 12 Stunden sein ---
+        # Arbeitszeit darf nicht > 12 Stunden sein ---
         if net_work_hours_decimal > 12:
             comment_parts.append(f"Überzeit > 12h")
 
@@ -172,25 +171,67 @@ def is_valid_time_format(time_str):
         return False
 
 
+def get_sort_date(row):
+    """
+    Hilfsfunktion: Wandelt den Datums-String einer Zeile
+    in ein Datumsobjekt um, damit sortiert werden kann.
+    """
+    return datetime.strptime(row["Datum"], "%d.%m.%Y")
+
+
 def save_to_csv(data_row: dict, filepath: str):
-    folder_path = os.path.dirname(filepath)
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
+    """
+    Speichert einen Eintrag in die CSV Datei.
+    """
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
-    file_exists = os.path.exists(filepath)
+    rows = []
 
+    # Einlesen in eine Liste
+    if os.path.exists(filepath):
+        try:
+            with open(filepath, "r", encoding="utf-8", newline="") as f:
+                reader = csv.DictReader(f, delimiter=";")
+                rows = list(reader)
+        except Exception:
+            rows = []
+
+    target_date = data_row["Datum"]
+    overwritten = False
+    found_index = -1
+
+    # Suchen der Position (Index)
+    # enumerate, um das Element und die Position (i) zu haben
+    for i, row in enumerate(rows):
+        if row["Datum"] == target_date:
+            found_index = i
+            overwritten = True
+            break
+
+    # Ersetzen oder Anhängen
+    if found_index != -1:
+        # Datensatz überschreiben
+        rows[found_index] = data_row
+    else:
+        # Wenn noch kein Eintrag vorhanden ist,
+        # am ende hinzufügen
+        rows.append(data_row)
+
+    # Sortieren und Schreiben
     try:
-        with open(filepath, "a", newline="", encoding="utf-8") as f:
+        # sortieren
+        rows.sort(key=get_sort_date)
+
+        with open(filepath, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=HEADERS, delimiter=";")
+            writer.writeheader()
+            writer.writerows(rows)
 
-            if not file_exists:
-                writer.writeheader()
+        return True, overwritten
 
-            writer.writerow(data_row)
-        return True
-    except IOError as e:
+    except Exception as e:
         print(f"Fehler beim Speichern: {e}")
-        return False
+        return False, False
 
 
 def get_german_weekday(date_obj):
@@ -204,13 +245,13 @@ def is_date_in_current_month(date_str):
     Gibt (True, date_obj) zurück oder (False, None).
     """
     try:
-        # 1. Eingabe in Datum umwandeln
+        # Eingabe in Datum umwandeln
         input_date = datetime.strptime(date_str, "%d.%m.%Y")
 
-        # 2. Aktuelles Datum holen
+        # Aktuelles Datum holen
         now = datetime.now()
 
-        # 3. Vergleichen (Jahr und Monat müssen gleich sein)
+        # Vergleichen (Jahr und Monat müssen gleich sein)
         if input_date.year == now.year and input_date.month == now.month:
             if input_date > now:
                 return False, "Das Datum liegt in der Zukunft."

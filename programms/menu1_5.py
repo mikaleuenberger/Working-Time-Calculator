@@ -144,7 +144,7 @@ def process_time_entry(current_user, report_date):
         # Ausgabe im Terminal
         print(
             f"\nDynamische Wochensumme bis heute:"
-            + " {round(total_hours_with_today, 2)} h"
+            f" {round(total_hours_with_today, 2)} h"
         )
 
         if total_hours_with_today > MAX_WEEKLY_HOURS:
@@ -153,7 +153,7 @@ def process_time_entry(current_user, report_date):
             print("\n" + "=" * 50)
             print(
                 f"⚠️  ACHTUNG: Überschreitung der Wochenarbeitszeit"
-                + " (max {MAX_WEEKLY_HOURS}h)!"
+                + " (max {MAX_WEEKLY_HOURS} h)!"
             )
             print(f"    Total Woche:     {round(total_hours_with_today, 2)} h")
             print("=" * 50 + "\n")
@@ -194,8 +194,19 @@ def process_time_entry(current_user, report_date):
         )
 
         print(f"Speichere in Ordner: {user_folder}...")
-        if calculate_working_time.save_to_csv(data_to_save, target_file):
-            print("Speichern erfolgreich. ✅")
+
+        success, overwritten = calculate_working_time.save_to_csv(
+            data_to_save, target_file
+        )
+
+        if success:
+            if overwritten:
+                print(
+                    f"⚠️  Bestehender Eintrag für {date_str_display} "
+                    f"wurde aktualisiert/überschrieben! 🔄"
+                )
+            else:
+                print("Speichern erfolgreich (Neuer Eintrag). ✅")
         else:
             print("Fehler beim Speichern. ❌")
     else:
@@ -407,7 +418,8 @@ def show_employee_weekly_report(current_user):
 
     date_label = (
         f"KW {start_week.isocalendar()[1]} "
-        f"({start_week.strftime('%d.%m.')} bis {end_week.strftime('%d.%m.%Y')}"
+        f"({start_week.strftime('%d.%m.')}"
+        f" bis {end_week.strftime('%d.%m.%Y')})"
     )
 
     # DATEIEN LADEN

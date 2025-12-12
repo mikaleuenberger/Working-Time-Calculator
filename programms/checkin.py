@@ -48,8 +48,8 @@ def check_credentials(user_id, last_name_input, users_list):
 def next_function(user_data):
     """Die Funktion, die nach einem erfolgreichen Login ausgeführt wird."""
     print(
-        f"\nLogin erfolgreich! Willkommen,"
-        + " {user_data['surname']} {user_data['last_name']}."
+        f"\nLogin erfolgreich! Willkommen, "
+        f"{user_data['surname']} {user_data['last_name']}"
     )
 
     # Hier starten wir die Anwendung und übergeben den User
