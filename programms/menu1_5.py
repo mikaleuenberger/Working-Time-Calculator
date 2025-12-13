@@ -716,9 +716,7 @@ def monatsrapport(current_user):
     # Report für eine einzelne Person
     while True:
         print("\n==============================")
-        emp = input(
-            "Mitarbeiter-ID eingeben (leer = erste passende Datei nehmen) oder 'x' für Abbruch: "
-        ).strip()
+        emp = input("Mitarbeiter-ID eingeben oder 'x' für Abbruch: ").strip()
 
         if emp.lower() == "x":
             return
