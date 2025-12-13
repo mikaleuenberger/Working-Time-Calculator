@@ -16,12 +16,11 @@ Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit 
 1. Als User möchte ich meine Arbeitszeit exakt eingeben (hh:mm) 
 2. Ich möchte meine Tages-, Wochen- und Monatsarbeitszeit auf dem Blatt sehen (Eingabe einzelner Tage und Auswertung der Woche oder des Monats mit bestehenden Daten) 
 3. Als User möchte ich eine Fehlermeldung, wenn ich die gesetzliche mindest Mittagszeit unterschreite
-4. Ich möchte als User Pausen in mm eintragen können, diese Eingabe ist jedoch optional 
-5. Ich möchte als User sehen, wie viele Überstunden ich habe (ab Wochenarbeitszeit 42h) 
-6. Ich möchte als User eine Warnmeldung bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist 
-7. Ich möchte mich als User bei der Verwendung des Tools mittels ID und Nachname authentifizieren 
-8. Als Vorgesetzter will ich Ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter 
-9. Als minderjähriger Mitarbeiter darf ich nicht über 9h arbeiten und keine Nacht- oder Wochenendarbeit machen, damit die Jugendarbeitsschutzgesetze eingehalten werden. Ausnahmen können begründet vorkommen oder es können nachträglich die Zeiten korrigiert werden
+4. Ich möchte als User Pausen in mm eintragen können, diese Eingabe ist jedoch optional  
+5. Ich möchte als User eine Warnmeldung bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist 
+6. Ich möchte mich als User bei der Verwendung des Tools mittels ID und Nachname authentifizieren 
+7. Als Vorgesetzter will ich Ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter 
+8. Als minderjähriger Mitarbeiter darf ich nicht über 9h arbeiten und keine Nacht- oder Wochenendarbeit machen, damit die Jugendarbeitsschutzgesetze eingehalten werden. Ausnahmen können begründet vorkommen oder es können nachträglich die Zeiten korrigiert werden
 
 **Use cases:**
 - Authentifizieren mittels ID und Nachnahmen  

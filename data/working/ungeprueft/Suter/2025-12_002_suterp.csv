@@ -6,7 +6,7 @@ Datum;Wochentag;Arbeitsbeginn;Pause_min;Mittag_beginn;Mittag_ende;Arbeitsende;Ko
 05.12.2025;Freitag;07:45;15;12:00;12:30;16:15;;7.75
 08.12.2025;Montag;07:45;15;12:00;12:30;16:45;;8.25
 09.12.2025;Dienstag;07:45;30;;;16:15;Keine Mittagspause eingetragen;8.00
-10.12.2025;Mittwoch;08:00;15;12:15;12:45;17:00;Überzeit;8.25
+10.12.2025;Mittwoch;08:00;15;12:15;12:45;17:00;;8.25
 11.12.2025;Donnerstag;07:45;15;12:00;12:30;16:45;;8.25
 12.12.2025;Freitag;08:00;0;;;22:00;"Keine Mittagszeit erfasst, 30 min automatisch abgezogen; Überzeit > 12h; Wochenstunden > 45h";13.5
 15.12.2025;Montag;07:45;15;12:00;12:30;16:45;;8.25
