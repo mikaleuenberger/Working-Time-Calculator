@@ -153,7 +153,7 @@ def process_time_entry(current_user, report_date):
             print("\n" + "=" * 50)
             print(
                 f"⚠️  ACHTUNG: Überschreitung der Wochenarbeitszeit"
-                + " (max {MAX_WEEKLY_HOURS} h)!"
+                + f" (max {MAX_WEEKLY_HOURS} h)!"
             )
             print(f"    Total Woche:     {round(total_hours_with_today, 2)} h")
             print("=" * 50 + "\n")
