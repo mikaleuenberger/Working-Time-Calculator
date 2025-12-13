@@ -108,44 +108,58 @@ Die Applikation liest und schreibt Daten mit bestehenden .csv-Dateien als Grundl
 		- Der Mitarbeiter bekommt kein Output-File, sondern die Wochen- und Monatsübersicht direkt in der Konsole
 
 ## ⚙️ Implementation
-> ⚠️ Dieser Abschnitt ist noch in Bearbeitung und folgt in der finalen Version des Dokuments.
 
 ### Technology
 - Python 3.x
-- Environment: GitHub Codespaces
-- No external libraries
+- Umgebung: GitHub Codespaces
+- Keine externen libraries
 
 ### 📂 Repository Structure
-> 🚧 Beschreibung folgt noch..
-
-```text
-Working Time Calculator/
-├── main.py             # main program logic (console application)
-├── wtc.csv	            # working time (input data file)
-├── oct2025_001.csv     # example of monthly report (output file)
-├── docs/               # optional screenshots or project documentation
-└── README.md           # project description and milestones
+```Working-Time-Calculator/
+data folder
+reports/
+├── working / ungeprüft 			 # Ordner für ungeprüfte .csv reports
+	/Hübner
+	├── 2025_10_003_huebnerm.csv     # Beispiel eines Monatsreports (output file)
+	├── 2025_11_003_huebnerm.csv     # Beispiel eines Monatsreports (output file)
+	├── 2025_12_003_huebnerm.csv     # Beispiel eines Monatsreports (output file)
+	/Müller
+	├── 2025_10_001_muellerh.csv     # Beispiel eines Monatsreports (output file)
+	├── 2025_11_001_muellerh.csv     # Beispiel eines Monatsreports (output file)
+	├── 2025_12_001_muellerh.csv     # Beispiel eines Monatsreports (output file)
+	/Suter
+	├── 2025_10_002_suterp.csv		# Beispiel eines Monatsreports (output file)
+	├── 2025_11_002_suterp.csv     	# Beispiel eines Monatsreports (output file)
+	├── 2025_12_002_suterp.csv     	# Beispiel eines Monatsreports (output file)
+├── working / geprüft				# Ordner für geprüfte .csv reports
+programms
+├── calculate_working_time.py 		# Berechnet die Zeit, meiste Validierungen
+├── checkin.py            			# User Authentifizierung mit ID und Nachname
+├── menu1_5.py             			# Menu für die Auswahl der Interkation
+├── reports.py						# Generierung der Reports 
+├── user_admin.py					# Administration der Benutzerdaten
+├── users.json						# Dictionary mit den Benutzerdaten
+└── README.md           			# Projektbeschreibung
 ```
-
 ### How to Run
-> 🚧 Beschreibung folgt noch..
-1. Open the repository in **GitHub Codespaces**
-2. Open the **Terminal**
-3. Run:
-	```bash
-	python3 main.py
-	```
+1. Öffne das repository in **GitHub Codespaces**
+2. Öffne **Terminal**
+3. Starte Programm:	python3 checkin.py
 
 ### Libraries Used
-> 🚧 Beschreibung folgt noch..
-- `os`: Used for file and path operations, such as checking if the menu file exists and creating new files.
-- `glob`: Used to find all invoice files matching a pattern (e.g., `invoice_*.txt`) to determine the next invoice number.
+- `datetime: datetime, timedelta`: benutzt für Datums- und Zeiteingaben und für berechnen des Deltas
+- `re`: benutzt für die Input Validierung (Format hh:mm)
+- `csv`: benutzt um .csv files zu lesen oder zu schreiben
+- `json`: benutzt um users.json file zu lesen
+- `shutil`: benutzt um Dateien zwischen Ordner "geprüft" und "ungeprüft" zu verschieben
+- `pathlib: path`: benutzt um zu prüfen, ob ein file existiert und den Dateipfad zu verwalten
+- `os`: benutzt um json-file zu finden, auch wenn es in in einem anderen Pfad ist
 
-These libraries are part of the Python standard library, so no external installation is required. They were chosen for their simplicity and effectiveness in handling file management tasks in a console application.
+Diese libraries sind Teil der Python Standard Library, es müssen keine externen installiert werden.
+Sie wurden gewählt, um die spezifischen Anforderungen des Programms zu ermöglichen und es stabil zu machen.
 
 
 ## 👥 Team & Contributions
-> 🚧 Die genauen Beteiligungen der einzelnen Mitglieder folgt noch..
 
 | Name               | Contribution |
 | ------------------ | ------------ |

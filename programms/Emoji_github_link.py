@@ -1,1 +1,0 @@
-## https://carpedm20.github.io/emoji/
