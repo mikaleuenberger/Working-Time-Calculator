@@ -148,7 +148,7 @@ programms
 
 ### Libraries Used
 - `datetime: datetime, timedelta`: benutzt für Datums- und Zeiteingaben und für berechnen des Deltas
-- `re`: benutzt für die Input Validierung (Format hh:mm)
+- `re`: benutzt für die Input Validierung
 - `csv`: benutzt um .csv files zu lesen oder zu schreiben
 - `json`: benutzt um users.json file zu lesen
 - `shutil`: benutzt um Dateien zwischen Ordner "geprüft" und "ungeprüft" zu verschieben
