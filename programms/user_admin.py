@@ -1,5 +1,5 @@
 # Verwaltung der Benutzerdatei (users.json)
-# Wird vom Vorgesetzten-Menü aufgerufen, um Mitarbeitende zu verwalten.
+# Vom Vorgesetzten-Menü aufgerufen
 
 import json
 from pathlib import Path
@@ -12,51 +12,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def ermittle_users_json_pfad():
-    # Sucht nach der Datei 'users.json' an üblichen Orten.
-    # Rückgabewert: Pfadobjekt (kann existieren oder noch nicht existieren)
-
-    # Ordner, in dem user_admin.py liegt (also /programms)
-    script_dir = Path(__file__).resolve().parent
-
-    moegliche_pfade = [
-        # -> /.../programms/users.json  (gleiche wie checkin.py)
-        script_dir / "users.json",
-        BASE_DIR / "users.json",  # Fallback: Projekt-Root
-        BASE_DIR
-        / "data"
-        / "users.json",  # weiterer Fallback: /data/users.json
-    ]
-
-    for p in moegliche_pfade:
-        if p.exists():
-            return p
-
-    # Falls keine Datei gefunden wurde, wird standardmässig
-    # im /programms-Ordner eine neue users.json erwartet/angelegt.
-    return script_dir / "users.json"
+    return Path(__file__).resolve().parent / "users.json"
 
 
 def lade_users():
     # Lädt die Benutzerinformationen aus der Datei users.json.
-    # Rückgabe:
-    #   daten -> Dictionary mit dem Schlüssel "users"
-    #   pfad  -> tatsächlicher Speicherort der Datei
+    # Falls sie nicht existiert, wird eine neue Datei vorbereitet.
 
     pfad = ermittle_users_json_pfad()
 
-    # Wenn die Datei noch nicht existiert, leere Struktur zurückgeben
     if not pfad.exists():
         print(
-            "⚠️  Die Datei 'users.json' existiert noch nicht."
-            + " Es wird eine neue Datei angelegt."
+            "⚠️  users.json existiert noch nicht – "
+            "es wird eine neue Datei angelegt."
         )
         return {"users": []}, pfad
 
-    # Datei öffnen und JSON-Daten einlesen
     with pfad.open(encoding="utf-8") as f:
         daten = json.load(f)
 
-    # Sicherstellen, dass der Schlüssel "users" vorhanden ist
     if "users" not in daten or not isinstance(daten["users"], list):
         daten["users"] = []
 
@@ -75,10 +49,25 @@ def speichere_users(daten, pfad):
 
 # Funktionen zum Bearbeiten und Anlegen von Benutzern
 
+# Hilfsfunktionen für Validierung
+
+def nur_buchstaben(text):
+    # Erlaubt Buchstaben inkl. Umlaute und Bindestrich
+    return bool(re.match(r"^[A-Za-zÄÖÜäöüß-]+$", text))
+
+
+def gueltige_email(text):
+    # Simple Prüfung reicht hier
+    return "@" in text and "." in text
+
+
+def gueltige_rolle(text):
+    return text in ["Mitarbeiter", "Vorgesetzter"]
+
 
 def benutzer_bearbeiten(benutzer):
-    # Ermöglicht das Bearbeiten eines einzelnen Benutzers.
-    # Alle Eingaben sind optional (Enter = Wert bleibt unverändert).
+    # Bearbeiten eines einzelnen Benutzers
+    # Enter = Wert bleibt unverändert
 
     print("\n--- Benutzer bearbeiten ---")
     print(
@@ -89,35 +78,67 @@ def benutzer_bearbeiten(benutzer):
     print(f"Rolle:  {benutzer['business_role']}")
     print(f"Alter:  {benutzer['age']}")
 
-    # Vorname (surname im JSON)
-    vor = input(f"Vorname [{benutzer['surname']}]: ").strip()
-    if vor:
+    # Vorname
+    while True:
+        vor = input(f"Vorname [{benutzer['surname']}]: ").strip()
+        if vor == "":
+            break  # bleibt wie es ist
+        if not nur_buchstaben(vor):
+            print("❌ Vorname darf nur Buchstaben enthalten!")
+            continue
         benutzer["surname"] = vor
+        break
 
-    # Nachname (name im JSON)
-    nach = input(f"Nachname [{benutzer['last_name']}]: ").strip()
-    if nach:
+    # Nachname
+    while True:
+        nach = input(f"Nachname [{benutzer['last_name']}]: ").strip()
+        if nach == "":
+            break
+        if not nur_buchstaben(nach):
+            print("❌ Nachname darf nur Buchstaben enthalten!")
+            continue
         benutzer["last_name"] = nach
+        break
 
-    # E-Mail-Adresse
-    email = input(f"Email [{benutzer['email']}]: ").strip()
-    if email:
+    # Email
+    while True:
+        email = input(f"Email [{benutzer['email']}]: ").strip()
+        if email == "":
+            break
+        if not gueltige_email(email):
+            print("❌ Ungültige Email-Adresse!")
+            continue
         benutzer["email"] = email
+        break
 
-    # Rolle (Mitarbeiter oder Vorgesetzter)
-    rolle = input(
-        f"Rolle (Mitarbeiter/Vorgesetzter) [{benutzer['business_role']}]: "
-    ).strip()
-    if rolle:
+    # Rolle
+    while True:
+        rolle = input(
+            f"Rolle (Mitarbeiter/Vorgesetzter) "
+            f"[{benutzer['business_role']}]: "
+        ).strip()
+
+        if rolle == "":
+            break
+
+        rolle = rolle.capitalize()
+        if not gueltige_rolle(rolle):
+            print("❌ Ungültige Rolle! Erlaubt: Mitarbeiter oder Vorgesetzter")
+            continue
+
         benutzer["business_role"] = rolle
+        break
 
     # Alter
-    alt = input(f"Alter [{benutzer['age']}]: ").strip()
-    if alt:
-        try:
-            benutzer["age"] = int(alt)
-        except Exception:
-            print("⚠️  Ungültige Eingabe – Alter wurde nicht geändert.")
+    while True:
+        alt = input(f"Alter [{benutzer['age']}]: ").strip()
+        if alt == "":
+            break
+        if not alt.isdigit():
+            print("❌ Alter muss eine ganze Zahl sein!")
+            continue
+        benutzer["age"] = int(alt)
+        break
 
 
 def benutzer_anlegen(daten):
