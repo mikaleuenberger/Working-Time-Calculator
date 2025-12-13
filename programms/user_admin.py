@@ -82,7 +82,7 @@ def benutzer_bearbeiten(benutzer):
     while True:
         vor = input(f"Vorname [{benutzer['surname']}]: ").strip()
         if vor == "":
-            break  # bleibt wie es ist
+            break
         if not nur_buchstaben(vor):
             print("❌ Vorname darf nur Buchstaben enthalten!")
             continue
@@ -247,8 +247,8 @@ def benutzerverwaltung_starten():
                 print(
                     str(i).ljust(3),
                     str(u["id"]).ljust(5),
-                    u["surname"].ljust(15),  # Vorname
-                    u["last_name"].ljust(15),  # Nachname
+                    u["surname"].ljust(15),
+                    u["last_name"].ljust(15),
                     u["business_role"].ljust(15),
                     str(u["age"]).ljust(5),
                 )
