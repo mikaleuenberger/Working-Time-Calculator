@@ -53,7 +53,6 @@ def calculate_work_time(
     comment_parts = []
 
     try:
-        # 1. Start und Ende parsen
         t_start = datetime.strptime(start_str, time_fmt)
         t_end = datetime.strptime(end_str, time_fmt)
 
@@ -63,9 +62,8 @@ def calculate_work_time(
 
         gross_work_duration = t_end - t_start
 
-        # 2. Mittagspause berechnen
         lunch_duration_minutes = 0
-        MINDEST_PAUSE_MIN = 30  # Konstante für die Mindestpausenlänge
+        MINDEST_PAUSE_MIN = 30
 
         # Prüfen, ob eine Mittagspause eingetragen wurde
         if lunch_start_str and lunch_end_str:

@@ -69,8 +69,6 @@ def mm_to_hhmm(total_min):
 
 
 def row_minutes(row):
-    # NEU: Zuerst versuchen, den bereits
-    # berechneten Wert 'Netto_Stunden' zu nutzen
     net_hours_str = (row.get("Netto_Stunden") or "").strip().replace(",", ".")
     try:
         # Konvertiere den String

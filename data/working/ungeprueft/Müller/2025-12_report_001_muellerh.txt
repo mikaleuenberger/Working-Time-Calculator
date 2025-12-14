@@ -1,0 +1,28 @@
+Mitarbeiter #001 (muellerh)
+------------------------------------------
+Datum        Wochentag   Netto    Kommentar
+01.12.2025  Montag       08:15   
+02.12.2025  Dienstag     08:15   
+03.12.2025  Mittwoch     08:45   Überzeit
+04.12.2025  Donnerstag   08:15   
+05.12.2025  Freitag      07:45   
+08.12.2025  Montag       08:15   
+09.12.2025  Dienstag     08:00   Keine Mittagspause eingetragen
+10.12.2025  Mittwoch     08:15   
+11.12.2025  Donnerstag   08:15   
+12.12.2025  Freitag      07:45   
+14.12.2025  Sonntag      03:00   
+15.12.2025  Montag       08:15   
+16.12.2025  Dienstag     08:15   
+17.12.2025  Mittwoch     08:15   
+18.12.2025  Donnerstag   08:45   Überzeit
+19.12.2025  Freitag      07:15   Später Arbeitsbeginn
+
+Hinweise:
+! 03.12.2025 Überzeit
+! 09.12.2025 Keine Mittagspause eingetragen
+! 18.12.2025 Überzeit
+! 19.12.2025 Später Arbeitsbeginn
+------------------------------------------
+Total Monat:        125:30
+Überstunden (Wo):   01:30

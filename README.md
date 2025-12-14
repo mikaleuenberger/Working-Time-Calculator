@@ -15,9 +15,9 @@ Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit 
 **User stories:**
 1. Als User möchte ich meine Arbeitszeit exakt eingeben (hh:mm) 
 2. Ich möchte meine Tages-, Wochen- und Monatsarbeitszeit auf dem Blatt sehen (Eingabe einzelner Tage und Auswertung der Woche oder des Monats mit bestehenden Daten) 
-3. Als User möchte ich eine Fehlermeldung, wenn ich die gesetzliche mindest Mittagszeit unterschreite
-4. Ich möchte als User Pausen in mm eintragen können, diese Eingabe ist jedoch optional  
-5. Ich möchte als User eine Warnmeldung bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist 
+3. Als User möchte ich eine Fehlermeldung in Form eines Kommentars sehen, wenn ich die gesetzliche mindest Mittagszeit unterschreite
+4. Ich möchte als User Pausen in mm eintragen können.
+5. Ich möchte als User eine Warnmeldung als Kommentar bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist 
 6. Ich möchte mich als User bei der Verwendung des Tools mittels ID und Nachname authentifizieren 
 7. Als Vorgesetzter will ich Ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter 
 8. Als minderjähriger Mitarbeiter darf ich nicht über 9h arbeiten und keine Nacht- oder Wochenendarbeit machen, damit die Jugendarbeitsschutzgesetze eingehalten werden. Ausnahmen können begründet vorkommen oder es können nachträglich die Zeiten korrigiert werden
@@ -146,12 +146,21 @@ programms
 3. Starte Programm:	python3 checkin.py
 4. Authentifizieren als Benutzer
 	#### Benutzerübersicht
+<<<<<<< Updated upstream
 	| ID		| Nachname		| Rolle  |
 	| --------- | ------------- |--------|
 	| 001		| Müller		| Mitarbeiter| 
 	| 002		| Suter			| Mitarbeiter| 
 	| 003		| Hübner		(u18)| Mitarbeiter| 
 	| 004		| Ackermann 	| Vorgesetzer| 
+=======
+ | ID  | Nachname  | Rolle       |
+ | --- | --------- | ----------- |
+ | 001 | Müller    | Mitarbeiter |
+ | 002 | Suter     | Mitarbeiter |
+ | 003 | Hübner    | Lehsrnender |
+ | 004 | Ackermann | Vorgesetzer |
+>>>>>>> Stashed changes
 
 ### Libraries Used
 - `datetime: datetime, timedelta`: benutzt für Datums- und Zeiteingaben und für berechnen des Deltas
@@ -168,11 +177,11 @@ Sie wurden gewählt, um die spezifischen Anforderungen des Programms zu ermögli
 
 ## 👥 Team & Contributions
 
-| Name               | Contribution |
-| ------------------ | ------------ |
-| Flavio Waser       | Menü für Mitarbeiter und Vorgesetzte, Erstellen der Monatsrapports als .csv-File oder Ausgabe in Konsole je nach Rolle, Mutation der Mitarbeiter-Daten durch Vorgesetzten        |
-| Kristina Schaffner | User-File, Check-In, Validierung Minderjährige, automatischer Abzug Mittagszeit, Validierung Wochenarbeitszeit über 45h, Überprüfung und Überarbeitung Readme-File           |
-| Mika Leuenberger   | Zeiterfassung, Verschieben der Dateien nach Prüfung durch Vorgesetzten, diverse Validierungen bei Eingabe der Daten (Datum, Wochentage, Erkennung ob Woche über Monatsende geht, maximale Tagesarbeitszeit 12h, Mittagspause mind. 30min)           |
+| Name               | Contribution                                                                                                                                                                                                                              |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Flavio Waser       | Menü für Mitarbeiter und Vorgesetzte, Erstellen der Monatsrapports als .csv-File oder Ausgabe in Konsole je nach Rolle, Mutation der Mitarbeiter-Daten durch Vorgesetzten                                                                 |
+| Kristina Schaffner | User-File, Check-In, Validierung Minderjährige, automatischer Abzug Mittagszeit, Validierung Wochenarbeitszeit über 45h, Überprüfung und Überarbeitung Readme-File                                                                        |
+| Mika Leuenberger   | Zeiterfassung, Verschieben der Dateien nach Prüfung durch Vorgesetzten, diverse Validierungen bei Eingabe der Daten (Datum, Wochentage, Erkennung ob Woche über Monatsende geht, maximale Tagesarbeitszeit 12h, Mittagspause mind. 30min) |
 
 
 ## 🤝 Contributing

@@ -22,12 +22,14 @@ def load_users(filename="users.json"):
         return users_data
     except FileNotFoundError:
         print(
-            f"Fehler: Die Datei '{file_path}' "
+            f"❌ Fehler: Die Datei '{file_path}' "
             + "wurde nicht gefunden. Überprüfen Sie den Pfad."
         )
         return []
     except json.JSONDecodeError:
-        print(f"Fehler: Die Datei '{filename}' ist keine gültige JSON-Datei.")
+        print(
+            f"❌ Fehler: Die Datei '{filename}' ist keine gültige JSON-Datei."
+        )
         return []
 
 
@@ -48,7 +50,7 @@ def check_credentials(user_id, last_name_input, users_list):
 def next_function(user_data):
     """Die Funktion, die nach einem erfolgreichen Login ausgeführt wird."""
     print(
-        f"\nLogin erfolgreich! Willkommen, "
+        f"\n✅ Login erfolgreich! Willkommen, "
         f"{user_data['surname']} {user_data['last_name']}"
     )
 
@@ -73,7 +75,7 @@ def main():
             "Bitte geben Sie Ihren Nachnamen ein: "
         ).strip()
     except ValueError:
-        print("\nFehler: Die ID muss eine Zahl sein.")
+        print("\n❌ Fehler: Die ID muss eine Zahl sein.")
         return main()
 
     # Hier fangen wir das User-Objekt ab
@@ -84,7 +86,7 @@ def main():
     if identified_user:
         next_function(identified_user)
     else:
-        print("\nFehler bei der Authentifizierung.")
+        print("\n❌ Fehler bei der Authentifizierung.")
         while True:
             choice = input("Nochmal? (1=ja, 2=nein, stop): ").lower()
             if choice == "1":

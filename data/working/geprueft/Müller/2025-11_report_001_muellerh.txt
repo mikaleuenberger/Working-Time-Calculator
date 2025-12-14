@@ -1,0 +1,35 @@
+Mitarbeiter #001 (muellerh)
+------------------------------------------
+Datum        Wochentag   Netto    Kommentar
+03.11.2025  Montag       08:15   
+04.11.2025  Dienstag     08:15   
+05.11.2025  Mittwoch     09:45   Überzeit
+06.11.2025  Donnerstag   08:15   
+07.11.2025  Freitag      07:45   Später Arbeitsbeginn
+10.11.2025  Montag       08:15   
+11.11.2025  Dienstag     08:15   
+12.11.2025  Mittwoch     09:00   Keine Mittagspause eingetragen
+13.11.2025  Donnerstag   08:00   
+14.11.2025  Freitag      07:45   Früher Feierabend
+17.11.2025  Montag       10:15   Langer Tag / Überzeit
+18.11.2025  Dienstag     08:15   
+19.11.2025  Mittwoch     08:15   
+20.11.2025  Donnerstag   08:15   
+21.11.2025  Freitag      07:45   
+24.11.2025  Montag       08:15   
+25.11.2025  Dienstag     12:30   Überzeit
+26.11.2025  Mittwoch     08:15   
+27.11.2025  Donnerstag   08:15   
+28.11.2025  Freitag      06:15   Später Arbeitsbeginn
+
+Hinweise:
+! 05.11.2025 Überzeit
+! 07.11.2025 Später Arbeitsbeginn
+! 12.11.2025 Keine Mittagspause eingetragen
+! 14.11.2025 Früher Feierabend
+! 17.11.2025 Langer Tag / Überzeit
+! 25.11.2025 Überzeit
+! 28.11.2025 Später Arbeitsbeginn
+------------------------------------------
+Total Monat:        169:45
+Überstunden (Wo):   02:30

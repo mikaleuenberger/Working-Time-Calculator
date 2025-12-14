@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+    
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+html,footer,header{
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Custom MD PDF CSS
+ */
+html,footer,header{
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+
+ }
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+<link rel="stylesheet" href="file:///workspaces/Working-Time-Calculator/R%3A%5C2.Travail%5C1.Enseignement%5CCours%5C_1.Outils%5C2.Developpement%5C1.SCSS%5Cmain.css" type="text/css"><link rel="stylesheet" href="file:///workspaces/Working-Time-Calculator/D%3A%5Crdaros%5CCours%5C_1.Outils%5C2.Developpement%5C1.SCSS%5Cmain.css" type="text/css">
+</head>
+
+<body>
+    <h1 id="%F0%9F%93%8A%F0%9F%94%A2-wtcalculator-%E2%80%93-working-time-calculator-console">📊🔢 WTCalculator – Working Time Calculator (Console)</h1>
+<blockquote></blockquote>
+<h2 id="%F0%9F%93%9D-analyse">📝 Analyse</h2>
+<p><strong>Problem</strong></p>
+<blockquote>
+<p>Für kleinere Firmen ist das Erfassen der Arbeitszeiten ein essentieller Prozess.<br>
+Kommerzielle Lösungen wie SAP sind jedoch teuer. Mit unserer App bieten wir eine <strong>einfache und kostengünstige Alternative</strong> zur Arbeitszeiterfassung.</p>
+</blockquote>
+<p><strong>Scenario</strong><br>
+In unserer Python Appikation sollen Arbeitszeiten erfasst und ausgewertet werden können. Ein User kann Arbeitsbeginn und Arbeitsende als Uhrzeiten erfassen und die Pausen als Stunden/Minuten Input. Ausgewertet wird die Brutto und die Netto Arbeitszeit.<br>
+Die ausgerechneten Zeiten werden mit bestimmten Rules, die festgelegt sind, abgeglichen. Beispiele sind hier: Maximalarbeitszeiten (Max Überstundenanzahl), Einhaltung der Mittags-Pausenzeit (Keine Pausen unter 30 Minuten).<br>
+Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit die gültigen Regeln (z.B. Jugendschutzgesetz) automatisch angewendet werden.</p>
+<p><strong>User stories:</strong></p>
+<ol>
+<li>Als User möchte ich meine Arbeitszeit exakt eingeben (hh:mm)</li>
+<li>Ich möchte meine Tages-, Wochen- und Monatsarbeitszeit auf dem Blatt sehen (Eingabe einzelner Tage und Auswertung der Woche oder des Monats mit bestehenden Daten)</li>
+<li>Als User möchte ich eine Fehlermeldung in Form eines Kommentars sehen, wenn ich die gesetzliche mindest Mittagszeit unterschreite</li>
+<li>Ich möchte als User Pausen in mm eintragen können.</li>
+<li>Ich möchte als User eine Warnmeldung als Kommentar bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist</li>
+<li>Ich möchte mich als User bei der Verwendung des Tools mittels ID und Nachname authentifizieren</li>
+<li>Als Vorgesetzter will ich Ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter</li>
+<li>Als minderjähriger Mitarbeiter darf ich nicht über 9h arbeiten und keine Nacht- oder Wochenendarbeit machen, damit die Jugendarbeitsschutzgesetze eingehalten werden. Ausnahmen können begründet vorkommen oder es können nachträglich die Zeiten korrigiert werden</li>
+</ol>
+<p><strong>Use cases:</strong></p>
+<ul>
+<li>Authentifizieren mittels ID und Nachnahmen</li>
+<li>Arbeitszeiten und Pausen eingeben</li>
+<li>Eingaben validieren</li>
+<li>Zeitrapport auf Wochen- und Monatsbasis ausgeben</li>
+<li>Kommentare bei Regelverletzungen anzeigen</li>
+<li>Unterschiedliche Menüs für Mitarbeiter und Vorgesetzte</li>
+</ul>
+<hr>
+<h2 id="%E2%9C%85-projekt-anforderungen">✅ Projekt Anforderungen</h2>
+<p>Jede Applikation muss die folgenden 3 Kriterien erfüllen, um akzeptiert zu werden (gemäss Guidelines auf Moodle):</p>
+<ol>
+<li>Interaktive Applikation (console input)</li>
+<li>Datenvalidierung (input checking)</li>
+<li>Dateiverarbeitung (read/write)</li>
+</ol>
+<hr>
+<h3 id="1-interaktive-applikation">1. Interaktive Applikation</h3>
+<hr>
+<p>Die Applikation interagiert mit dem User in der Konsole. Der User kann in der App:</p>
+<ul>
+<li>Nachname und ID des Users eingeben</li>
+<li>Zeiteingabe</li>
+<li>Eingabe von Pausen</li>
+<li>Input Überprüfung: gemäss Data Validation</li>
+<li>Ausgabe meines Zeitrapports auf Monatsbasis</li>
+<li>Kommentare bei Verletzungen der Vorgaben</li>
+</ul>
+<hr>
+<h3 id="2-daten-%C3%BCberpr%C3%BCfung">2. Daten Überprüfung</h3>
+<ul>
+<li>
+<p><strong>user validation:</strong> Der user gibt seine ID und Nachnamen ein. Das Check-In prüft, ob beide Eingaben gemäss jscon-Dictionary (Mitarbeiterdaten) übereinstimmen. ID muss aus Zahlen bestehen, Name aus Buchstaben</p>
+</li>
+<li>
+<p><strong>age validation:</strong> Ist der User minderjährig, erhält er Kommentare bei Tagesarbeitszeit über 9h, bei Nachtarbeit (22:00-06:00) und bei Wochenendarbeit</p>
+</li>
+<li>
+<p><strong>time input validation:</strong> Die Arbeitszeit darf nur im Format hh:mm erfasst werden</p>
+</li>
+<li>
+<p><strong>break validation:</strong> Der user gibt seine Pausenzeiten in mm ein. Ohne Mittagspause wird das gesetzliche Minimum von 30min abgezogen, ausser es wird Nachtarbeit erkannt</p>
+</li>
+<li>
+<p><strong>work time validation:</strong> Die vorgesehene Arbeitszeit ist 42h. Alles darüber gilt als Überstunden. Nicht vorgesehen aber nicht verboten sind Überstunden ab 45h</p>
+</li>
+<li>
+<p><strong>input validation:</strong> Diverse Eingaben im Check-In und im Menü werden auf das Format geprüft, bei Bedarf korrigiert (Gross-/Kleinschreibung) oder bei falscher Eingabe kommentiert und zur neuen Eingabe aufgefordert</p>
+</li>
+</ul>
+<h3 id="3-file-processing">3. File Processing</h3>
+<p>Die Applikation liest und schreibt Daten mit bestehenden .csv-Dateien als Grundlage für die letzten Zeiterfassungen:</p>
+<ul>
+<li>
+<p><strong>Input file:</strong> <code>arbeitszeiterfassung.csv</code> — Enthält die Zeiteingaben des Benutzers, ein Tag pro Zeile im Format <code>Wochentag;Arbeitsbeginn;Pause;Arbeitsende;Zeitsaldo</code>.</p>
+<ul>
+<li>Beispiel:<pre class="hljs"><code><div>06.10.2025;Montag;08:20;20;12:00;12:45;17:30
+07.10.2025;Dienstag;07:35;20;11:45;13:00;17:00
+08.10.2025;Mittwoch;07:35;20;11:45;13:00;17:00
+</div></code></pre>
+</li>
+<li>Die Applikation liest die Daten zu Beginn, um die Validierunug sowie den Rapport auszuführen.</li>
+</ul>
+</li>
+<li>
+<p><strong>Output file:</strong> <code>arbeitszeitrapport.csv</code> — Enthält die Zeiteingabe des Benutzers des Monats inkl. Kommentare gemäss Validierung (Über-, Minusstunden und der Berücksichtigung der gesetztlichen Vorschriften).</p>
+<ul>
+<li>Beispiel:<pre class="hljs"><code><div>Mitarbeiter #001
+----------------------
+Datum:			Wochentag:				Arbeitszeit		Kommentar					Kummulierter Saldo
+06.10.2025		Montag					08:24										08:24
+07.10.2025		Dienstag				08:24			Mittagszeit unterschritten	16:48
+08.10.2025		Mittwoch				09:24			Arbeitszeit über 9h			26:12
+
+
+!Achtung: 07.10.2025 Mittagszeit unterschritten!
+!Achtung: 08.10.2025 Arbeitszeit Minderjährige überschritten!
+----------------------
+Total:                  26:12
+Monats-Soll:            168:00
+Gleitzeit-Saldo:        -142.28
+</div></code></pre>
+<ul>
+<li>Der Output dient dem Vorgesetzen als Übersicht über die geleistete Arbeitsstunden, den Gleitzeitssaldo sowie der Einhaltung gesetzlicher Vorgaben.</li>
+<li>Der Mitarbeiter bekommt kein Output-File, sondern die Wochen- und Monatsübersicht direkt in der Konsole</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="%E2%9A%99%EF%B8%8F-implementation">⚙️ Implementation</h2>
+<h3 id="technology">Technology</h3>
+<ul>
+<li>Python 3.x</li>
+<li>Umgebung: GitHub Codespaces</li>
+<li>Keine externen libraries</li>
+</ul>
+<h3 id="%F0%9F%93%82-repository-structure">📂 Repository Structure</h3>
+<pre class="hljs"><code><div>data folder
+reports/
+├── working / ungeprüft 			 # Ordner für ungeprüfte .csv reports
+	/Hübner
+	├── 2025_10_003_huebnerm.csv     # Beispiel eines Monatsreports (output file)
+	├── 2025_11_003_huebnerm.csv     # Beispiel eines Monatsreports (output file)
+	├── 2025_12_003_huebnerm.csv     # Beispiel eines Monatsreports (output file)
+	/Müller
+	├── 2025_10_001_muellerh.csv     # Beispiel eines Monatsreports (output file)
+	├── 2025_11_001_muellerh.csv     # Beispiel eines Monatsreports (output file)
+	├── 2025_12_001_muellerh.csv     # Beispiel eines Monatsreports (output file)
+	/Suter
+	├── 2025_10_002_suterp.csv		# Beispiel eines Monatsreports (output file)
+	├── 2025_11_002_suterp.csv     	# Beispiel eines Monatsreports (output file)
+	├── 2025_12_002_suterp.csv     	# Beispiel eines Monatsreports (output file)
+├── working / geprüft				# Ordner für geprüfte .csv reports
+programms
+├── calculate_working_time.py 		# Berechnet die Zeit, meiste Validierungen
+├── checkin.py            			# User Authentifizierung mit ID und Nachname
+├── menu1_5.py             			# Menu für die Auswahl der Interkation
+├── reports.py						# Generierung der Reports 
+├── user_admin.py					# Administration der Benutzerdaten
+├── users.json						# Dictionary mit den Benutzerdaten
+└── README.md           			# Projektbeschreibung
+</div></code></pre>
+<h3 id="how-to-run">How to Run</h3>
+<ol>
+<li>Öffne das repository in <strong>GitHub Codespaces</strong></li>
+<li>Öffne <strong>Terminal</strong></li>
+<li>Starte Programm:	python3 checkin.py</li>
+<li>Authentifizieren als Benutzer
+<h4 id="benutzer%C3%BCbersicht">Benutzerübersicht</h4>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Nachname</th>
+<th>Rolle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>001</td>
+<td>Müller</td>
+<td>Mitarbeiter</td>
+</tr>
+<tr>
+<td>002</td>
+<td>Suter</td>
+<td>Mitarbeiter</td>
+</tr>
+<tr>
+<td>003</td>
+<td>Hübner</td>
+<td>Lehsrnender</td>
+</tr>
+<tr>
+<td>004</td>
+<td>Ackermann</td>
+<td>Vorgesetzer</td>
+</tr>
+</tbody>
+</table>
+<h3 id="libraries-used">Libraries Used</h3>
+<ul>
+<li><code>datetime: datetime, timedelta</code>: benutzt für Datums- und Zeiteingaben und für berechnen des Deltas</li>
+<li><code>re</code>: benutzt für die Input Validierung</li>
+<li><code>csv</code>: benutzt um .csv files zu lesen oder zu schreiben</li>
+<li><code>json</code>: benutzt um users.json file zu lesen</li>
+<li><code>shutil</code>: benutzt um Dateien zwischen Ordner &quot;geprüft&quot; und &quot;ungeprüft&quot; zu verschieben</li>
+<li><code>pathlib: path</code>: benutzt um zu prüfen, ob ein file existiert und den Dateipfad zu verwalten</li>
+<li><code>os</code>: benutzt um json-file zu finden, auch wenn es in in einem anderen Pfad ist</li>
+</ul>
+<p>Diese libraries sind Teil der Python Standard Library, es müssen keine externen installiert werden.<br>
+Sie wurden gewählt, um die spezifischen Anforderungen des Programms zu ermöglichen und es stabil zu machen.</p>
+<h2 id="%F0%9F%91%A5-team--contributions">👥 Team &amp; Contributions</h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Contribution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flavio Waser</td>
+<td>Menü für Mitarbeiter und Vorgesetzte, Erstellen der Monatsrapports als .csv-File oder Ausgabe in Konsole je nach Rolle, Mutation der Mitarbeiter-Daten durch Vorgesetzten</td>
+</tr>
+<tr>
+<td>Kristina Schaffner</td>
+<td>User-File, Check-In, Validierung Minderjährige, automatischer Abzug Mittagszeit, Validierung Wochenarbeitszeit über 45h, Überprüfung und Überarbeitung Readme-File</td>
+</tr>
+<tr>
+<td>Mika Leuenberger</td>
+<td>Zeiterfassung, Verschieben der Dateien nach Prüfung durch Vorgesetzten, diverse Validierungen bei Eingabe der Daten (Datum, Wochentage, Erkennung ob Woche über Monatsende geht, maximale Tagesarbeitszeit 12h, Mittagspause mind. 30min)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="%F0%9F%A4%9D-contributing">🤝 Contributing</h2>
+<blockquote>
+<p>🚧 This is a template repository for student projects.<br>
+🚧 Do not change this section in your final submission.</p>
+</blockquote>
+<ul>
+<li>Use this repository as a starting point by importing it into your own GitHub account.</li>
+<li>Work only within your own copy — do not push to the original template.</li>
+<li>Commit regularly to track your progress.</li>
+</ul>
+<h2 id="%F0%9F%93%9D-license">📝 License</h2>
+<p>This project is provided for <strong>educational use only</strong> as part of the Programming Foundations module.<br>
+<a href="LICENSE">MIT License</a></p>
+
+</body>
+
+</html>
