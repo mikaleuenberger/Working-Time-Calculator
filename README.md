@@ -23,7 +23,7 @@ Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit 
 8. Als minderjähriger Mitarbeiter darf ich nicht über 9h arbeiten und keine Nacht- oder Wochenendarbeit machen, damit die Jugendarbeitsschutzgesetze eingehalten werden. Ausnahmen können begründet vorkommen oder es können nachträglich die Zeiten korrigiert werden
 
 **Use cases:**
-- Authentifizieren mittels ID und Nachnahmen  
+- Authentifizieren mittels ID und Nachnahmen
 - Arbeitszeiten und Pausen eingeben  
 - Eingaben validieren  
 - Zeitrapport auf Wochen- und Monatsbasis ausgeben  
@@ -144,6 +144,13 @@ programms
 1. Öffne das repository in **GitHub Codespaces**
 2. Öffne **Terminal**
 3. Starte Programm:	python3 checkin.py
+4. Authentifizieren als Benutzer
+		Benutzerübersicht
+	ID		Nachname		Rolle
+	001		Müller			Mitarbeiter
+	002		Suter			Mitarbeiter
+	003		Hübner			Lehsrnender
+	004		Ackermann 		Vorgesetzer
 
 ### Libraries Used
 - `datetime: datetime, timedelta`: benutzt für Datums- und Zeiteingaben und für berechnen des Deltas
