@@ -150,7 +150,7 @@ programms
 	| --------- | ------------- |--------|
 	| 001		| Müller		| Mitarbeiter| 
 	| 002		| Suter			| Mitarbeiter| 
-	| 003		| Hübner		| Lehsrnender| 
+	| 003		| Hübner		(u18)| Mitarbeiter| 
 	| 004		| Ackermann 	| Vorgesetzer| 
 
 ### Libraries Used
