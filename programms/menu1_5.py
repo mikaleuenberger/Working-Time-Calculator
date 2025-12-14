@@ -786,7 +786,7 @@ def employee_menu_loop(current_user):
 def supervisor_menu_loop(current_user):
     while True:
         print(f"\n🛡️ VORGESETZTER: {current_user['last_name']}")
-        print(f"{V_REPORT_GEN}) Monatsrapport generieren (PDF/Excel)")
+        print(f"{V_REPORT_GEN}) Monatsrapport generieren (Text File)")
         print(f"{V_APPROVE}) Rapport freigeben (Verschieben)")
         print(f"{V_USER_JSON}) Benutzerverwaltung")
         print(f"{V_BEENDEN}) Beenden")
