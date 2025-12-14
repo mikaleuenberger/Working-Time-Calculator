@@ -145,12 +145,13 @@ programms
 2. Öffne **Terminal**
 3. Starte Programm:	python3 checkin.py
 4. Authentifizieren als Benutzer
-		Benutzerübersicht
-	ID		Nachname		Rolle
-	001		Müller			Mitarbeiter
-	002		Suter			Mitarbeiter
-	003		Hübner			Lehsrnender
-	004		Ackermann 		Vorgesetzer
+	#### Benutzerübersicht
+	| ID		| Nachname		| Rolle  |
+	| --------- | ------------- |--------|
+	| 001		| Müller		| Mitarbeiter| 
+	| 002		| Suter			| Mitarbeiter| 
+	| 003		| Hübner		| Lehsrnender| 
+	| 004		| Ackermann 	| Vorgesetzer| 
 
 ### Libraries Used
 - `datetime: datetime, timedelta`: benutzt für Datums- und Zeiteingaben und für berechnen des Deltas
