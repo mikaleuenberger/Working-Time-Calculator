@@ -146,21 +146,12 @@ programms
 3. Starte Programm:	python3 checkin.py
 4. Authentifizieren als Benutzer
 	#### Benutzerübersicht
-<<<<<<< Updated upstream
-	| ID		| Nachname		| Rolle  |
-	| --------- | ------------- |--------|
-	| 001		| Müller		| Mitarbeiter| 
-	| 002		| Suter			| Mitarbeiter| 
-	| 003		| Hübner		(u18)| Mitarbeiter| 
-	| 004		| Ackermann 	| Vorgesetzer| 
-=======
- | ID  | Nachname  | Rolle       |
- | --- | --------- | ----------- |
- | 001 | Müller    | Mitarbeiter |
- | 002 | Suter     | Mitarbeiter |
- | 003 | Hübner    | Lehsrnender |
- | 004 | Ackermann | Vorgesetzer |
->>>>>>> Stashed changes
+ | ID  | Nachname      | Rolle       |
+ | --- | ------------- | ----------- |
+ | 001 | Müller        | Mitarbeiter |
+ | 002 | Suter         | Mitarbeiter |
+ | 003 | Hübner		(u18) | Mitarbeiter |
+ | 004 | Ackermann     | Vorgesetzer |
 
 ### Libraries Used
 - `datetime: datetime, timedelta`: benutzt für Datums- und Zeiteingaben und für berechnen des Deltas
