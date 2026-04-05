@@ -1,18 +1,18 @@
-# 📊🔢 WTCalculator – Working Time Calculator (Console)
+# 📊🔢 WTCalculator – Working Time Calculator (Browser App)
 
 > 
-## 📝 Analyse
+## 📝 Application Requirements
 
-**Problem**
+### Problem
 > Für kleinere Firmen ist das Erfassen der Arbeitszeiten ein essentieller Prozess.  
 Kommerzielle Lösungen wie SAP sind jedoch teuer. Mit unserer App bieten wir eine **einfache und kostengünstige Alternative** zur Arbeitszeiterfassung.
 
-**Scenario**
+### Scenario
 In unserer Python Appikation sollen Arbeitszeiten erfasst und ausgewertet werden können. Ein User kann Arbeitsbeginn und Arbeitsende als Uhrzeiten erfassen und die Pausen als Stunden/Minuten Input. Ausgewertet wird die Brutto und die Netto Arbeitszeit. 
 Die ausgerechneten Zeiten werden mit bestimmten Rules, die festgelegt sind, abgeglichen. Beispiele sind hier: Maximalarbeitszeiten (Max Überstundenanzahl), Einhaltung der Mittags-Pausenzeit (Keine Pausen unter 30 Minuten).
 Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit die gültigen Regeln (z.B. Jugendschutzgesetz) automatisch angewendet werden.
 
-**User stories:**
+## 📖 User Stories
 1. Als User möchte ich meine Arbeitszeit exakt eingeben (hh:mm) 
 2. Ich möchte meine Tages-, Wochen- und Monatsarbeitszeit auf dem Blatt sehen (Eingabe einzelner Tage und Auswertung der Woche oder des Monats mit bestehenden Daten) 
 3. Als User möchte ich eine Fehlermeldung in Form eines Kommentars sehen, wenn ich die gesetzliche mindest Mittagszeit unterschreite
@@ -22,7 +22,7 @@ Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit 
 7. Als Vorgesetzter will ich Ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter 
 8. Als minderjähriger Mitarbeiter darf ich nicht über 9h arbeiten und keine Nacht- oder Wochenendarbeit machen, damit die Jugendarbeitsschutzgesetze eingehalten werden. Ausnahmen können begründet vorkommen oder es können nachträglich die Zeiten korrigiert werden
 
-**Use cases:**
+## 🧩 Use Cases
 - Authentifizieren mittels ID und Nachnahmen
 - Arbeitszeiten und Pausen eingeben  
 - Eingaben validieren  
@@ -30,32 +30,92 @@ Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit 
 - Kommentare bei Regelverletzungen anzeigen
 - Unterschiedliche Menüs für Mitarbeiter und Vorgesetzte
 
+### Main Use Cases
+- Zeit erfassen (Mitarbeiter)  
+- Zeiterfassung überprüfen (Vorgesetzter)  
+
+### Actors
+- Mitarbeiter  
+- Vorgesetzter
 
 ---
 
-## ✅ Projekt Anforderungen
+### Wireframes / Mockups *in progress*
 
-Jede Applikation muss die folgenden 3 Kriterien erfüllen, um akzeptiert zu werden (gemäss Guidelines auf Moodle):
+> 🚧 Add screenshots of the wireframe mockups you chose to implement.
 
-1. Interaktive Applikation (console input)
-2. Datenvalidierung (input checking)
-3. Dateiverarbeitung (read/write)
+![Wireframes – Home/Transactions](docs/ui-images/wireframes.png)
 
----
-
-### 1. Interaktive Applikation
-
----
-Die Applikation interagiert mit dem User in der Konsole. Der User kann in der App:
-- Nachname und ID des Users eingeben
-- Zeiteingabe
-- Eingabe von Pausen
-- Input Überprüfung: gemäss Data Validation
-- Ausgabe meines Zeitrapports auf Monatsbasis
-- Kommentare bei Verletzungen der Vorgaben
 
 ---
 
+## 🏛️ Architecture *in progress*
+
+![UML Class Diagram](docs/architecture-diagrams/uml_class_architecture.png)
+
+### Layers
+- **UI:** NiceGUI (browser-based interface)  
+- **Application logic:** controllers and services  
+- **Persistence:** SQLite + ORM + data access (DAO)  
+
+### Design Decisions
+- MVC structure (Model–View–Controller)
+- Clear separation of concerns
+- Business logic independent of UI
+
+### Patterns Used
+- MVC  
+- Repository / DAO  
+- Strategy (pricing rules)  
+- Adapter (invoice generation)  
+
+---
+
+## 🗄️ Database and ORM
+
+![ER Diagram](wtcalculator/docs/ui-images/ER_Modell.png)
+
+The application uses **SQLModel** to map domain objects to a SQLite database.
+
+### Entities
+- `Mitarbeiter`
+- `Vorgesetzte`
+- `Arbeitszeiterfassung`
+
+### Relationships
+- Ein `Mitarbeiter` → mehrere `Arbeitszeiterfassung`
+- Jede `Arbeitszeiterfassung` wird geprüft durch ein `Vorgesetzte`
+
+---
+
+## ✅ Project Requirements
+
+---
+
+> 🚧 Requirements act as a contract: implement and demonstrate each point below.
+
+Each app must meet the following criteria in order to be accepted (see also the official project guidelines PDF on Moodle):
+
+1. Using NiceGUI for building an interactive web app
+2. Data validation in the app
+3. Using an ORM for database management
+
+---
+
+### 1. Browser-based App (NiceGUI)
+
+> 🚧 In this section, document how your project fulfills each criterion.
+
+Die Applikation interagiert mit dem User via browser. Users können:
+
+- Sich einloggen
+- Ihre Arbeitszeit erfassen
+- Kommentare erhalten, wenn die Arbeitszeit der Validierung widerspricht
+- Arbeitszeitrapporte generieren (bspw. für Vorgesetzte)
+
+**Architecture note (per SS26 guidelines):** the browser is a thin client; UI state + business logic live on the server-side NiceGUI app.
+
+---
 
 ### 2. Daten Überprüfung
 
@@ -71,40 +131,13 @@ Die Applikation interagiert mit dem User in der Konsole. Der User kann in der Ap
 
 - **input validation:** Diverse Eingaben im Check-In und im Menü werden auf das Format geprüft, bei Bedarf korrigiert (Gross-/Kleinschreibung) oder bei falscher Eingabe kommentiert und zur neuen Eingabe aufgefordert
 
-### 3. File Processing
+---
 
-Die Applikation liest und schreibt Daten mit bestehenden .csv-Dateien als Grundlage für die letzten Zeiterfassungen:
+### 3. Database Management *in progress*
 
-- **Input file:** `arbeitszeiterfassung.csv` — Enthält die Zeiteingaben des Benutzers, ein Tag pro Zeile im Format `Wochentag;Arbeitsbeginn;Pause;Arbeitsende;Zeitsaldo`.
-	- Beispiel:
-		```
-		06.10.2025;Montag;08:20;20;12:00;12:45;17:30
-		07.10.2025;Dienstag;07:35;20;11:45;13:00;17:00
-		08.10.2025;Mittwoch;07:35;20;11:45;13:00;17:00
-		```
-	- Die Applikation liest die Daten zu Beginn, um die Validierunug sowie den Rapport auszuführen.
+All relevant data is managed via an ORM (e.g. SQLModel or SQLAlchemy). For the pizza example this includes users, pizzas, and orders.
 
-- **Output file:** `arbeitszeitrapport.csv` — Enthält die Zeiteingabe des Benutzers des Monats inkl. Kommentare gemäss Validierung (Über-, Minusstunden und der Berücksichtigung der gesetztlichen Vorschriften).
-
-	- Beispiel:
-		```
-		Mitarbeiter #001
-		----------------------
-		Datum:			Wochentag:				Arbeitszeit		Kommentar					Kummulierter Saldo
-		06.10.2025		Montag					08:24										08:24
-		07.10.2025		Dienstag				08:24			Mittagszeit unterschritten	16:48
-		08.10.2025		Mittwoch				09:24			Arbeitszeit über 9h			26:12
-
-
-		!Achtung: 07.10.2025 Mittagszeit unterschritten!
-		!Achtung: 08.10.2025 Arbeitszeit Minderjährige überschritten!
-		----------------------
-		Total:                  26:12
-		Monats-Soll:            168:00
-		Gleitzeit-Saldo:        -142.28
-		```
-		- Der Output dient dem Vorgesetzen als Übersicht über die geleistete Arbeitsstunden, den Gleitzeitssaldo sowie der Einhaltung gesetzlicher Vorgaben. 
-		- Der Mitarbeiter bekommt kein Output-File, sondern die Wochen- und Monatsübersicht direkt in der Konsole
+---
 
 ## ⚙️ Implementation
 
@@ -113,7 +146,19 @@ Die Applikation liest und schreibt Daten mit bestehenden .csv-Dateien als Grundl
 - Umgebung: GitHub Codespaces
 - Keine externen libraries
 
-### 📂 Repository Structure
+### Libraries Used
+- `datetime: datetime, timedelta`: benutzt für Datums- und Zeiteingaben und für berechnen des Deltas
+- `re`: benutzt für die Input Validierung
+- `csv`: benutzt um .csv files zu lesen oder zu schreiben
+- `json`: benutzt um users.json file zu lesen
+- `shutil`: benutzt um Dateien zwischen Ordner "geprüft" und "ungeprüft" zu verschieben
+- `pathlib: path`: benutzt um zu prüfen, ob ein file existiert und den Dateipfad zu verwalten
+- `os`: benutzt um json-file zu finden, auch wenn es in in einem anderen Pfad ist
+
+Diese libraries sind Teil der Python Standard Library, es müssen keine externen installiert werden.
+Sie wurden gewählt, um die spezifischen Anforderungen des Programms zu ermöglichen und es stabil zu machen.
+
+### 📂 Repository Structure *in progress*
 ```Working-Time-Calculator/
 data folder
 reports/
@@ -140,10 +185,42 @@ programms
 ├── users.json						# Dictionary mit den Benutzerdaten
 └── README.md           			# Projektbeschreibung
 ```
-### How to Run
-1. Öffne das repository in **GitHub Codespaces**
+### How to Run *in progress*
+
+### 1. Project Setup
+- Python 3.13 (or the course version) is required
+- Create and activate a virtual environment:
+   - **macOS/Linux:**
+      ```bash
+      python3 -m venv .venv
+      source .venv/bin/activate
+      ```
+   - **Windows:**
+      ```bash
+      python -m venv .venv
+      .venv\Scripts\Activate
+      ```
+- Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### 2. Configuration
+- E.g., setup of parameters or environment variables
+
+### 3. Launch
+- Start the NiceGUI app (example):
+   ```bash
+   py -m pizza_app
+   ```
+- Open the URL printed in the console.
+
+### 4. Usage
+
+Zeiterfassung als Mitarbeiter:
+1. Öffne **Visual Studio Code**
 2. Öffne **Terminal**
-3. Starte Programm:	python3 checkin.py
+3. Starte Programm:	source .venv/bin/activate python main.py
 4. Authentifizieren als Benutzer
 	#### Benutzerübersicht
  | ID  | Nachname      | Rolle       |
@@ -152,27 +229,49 @@ programms
  | 002 | Suter         | Mitarbeiter |
  | 003 | Hübner		(u18) | Mitarbeiter |
  | 004 | Ackermann     | Vorgesetzer |
+5. Erfasse Arbeitszeit, lade eine .csv-Datei hoch oder schau dir deinen Rapport an
 
-### Libraries Used
-- `datetime: datetime, timedelta`: benutzt für Datums- und Zeiteingaben und für berechnen des Deltas
-- `re`: benutzt für die Input Validierung
-- `csv`: benutzt um .csv files zu lesen oder zu schreiben
-- `json`: benutzt um users.json file zu lesen
-- `shutil`: benutzt um Dateien zwischen Ordner "geprüft" und "ungeprüft" zu verschieben
-- `pathlib: path`: benutzt um zu prüfen, ob ein file existiert und den Dateipfad zu verwalten
-- `os`: benutzt um json-file zu finden, auch wenn es in in einem anderen Pfad ist
+Einstieg als Vorgesetzter (nach Schritt 4):
+1. Mutiere Mitarbeiter-Daten
+2. Prüfe Arbeitszeit der Mitarbeitenden
 
-Diese libraries sind Teil der Python Standard Library, es müssen keine externen installiert werden.
-Sie wurden gewählt, um die spezifischen Anforderungen des Programms zu ermöglichen und es stabil zu machen.
+> 🚧 Add UI screenshots of the main screens (or a short video link):
 
+![UI – Mitarbeiter-Startseite](wtcalculator/docs/ui-images/startseite_ma1.png)
+![UI – Zeiterfassung](wtcalculator/docs/ui-images/zeiterfassung.png)
+
+---
+
+## 🧪 Testing - *in progress*
+
+> 🚧 Explain what you test and how to run tests.
+
+**Test mix:**
+- Overall 12 tests
+- 6 Unit tests: e.g. subtotal calculation, discount application above CHF 50, no discount at or below threshold, total calculation
+- 3 DB tests: e.g. menu query returns seeded pizzas, saving an order persists order + order items, empty DB / empty transactions behavior
+- 3 Integration tests: e.g. checkout with one pizza creates order and invoice, checkout with multiple pizzas applies discount correctly
+
+**Template for writing test cases**
+1. Test case ID – unique identifier (e.g., TC_001)
+2. Test case title/description – What is the test about?
+3. Preconditions: Requirements before executing the test
+4. Test steps: Actions to perform
+5. Test data/input
+6. Expected result
+7. Actual result
+8. Status – pass or fail
+9. Comments – Additional notes or defect found
+
+---
 
 ## 👥 Team & Contributions
 
 | Name               | Contribution                                                                                                                                                                                                                              |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Flavio Waser       | Menü für Mitarbeiter und Vorgesetzte, Erstellen der Monatsrapports als .csv-File oder Ausgabe in Konsole je nach Rolle, Mutation der Mitarbeiter-Daten durch Vorgesetzten                                                                 |
-| Kristina Schaffner | User-File, Check-In, Validierung Minderjährige, automatischer Abzug Mittagszeit, Validierung Wochenarbeitszeit über 45h, Überprüfung und Überarbeitung Readme-File                                                                        |
-| Mika Leuenberger   | Zeiterfassung, Verschieben der Dateien nach Prüfung durch Vorgesetzten, diverse Validierungen bei Eingabe der Daten (Datum, Wochentage, Erkennung ob Woche über Monatsende geht, maximale Tagesarbeitszeit 12h, Mittagspause mind. 30min) |
+| Flavio Waser       | NiceGUI UI, Anpassung des Hauptcodes auf objektorientierte Programmierung                                                                 |
+| Kristina Schaffner | Readme-File inkl. Grafiken, Passwort-Design, optimieren, Code review agent                                                                        |
+| Mika Leuenberger   | Ausführung für Mac optimieren, Programmstart |
 
 
 ## 🤝 Contributing
