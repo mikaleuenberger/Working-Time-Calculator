@@ -187,11 +187,12 @@ def login_page() -> None:
     ui.label("WTCalculator – Login").classes("text-h5 text-white")
 
     with ui.row().classes("w-full justify-center items-stretch q-gutter-xl"):
+        
+        # --- UHR CARD (Bleibt exakt wie vorher) ---
         with ui.card().classes("w-80 items-center justify-center"):
             ui.label("Uhr").classes("text-h6")
             clock_html = ui.html(_clock_svg(datetime.now(), size=260))
-            time_label = ui.label(datetime.now().strftime(
-                "%H:%M:%S")).classes("text-h5")
+            time_label = ui.label(datetime.now().strftime("%H:%M:%S")).classes("text-h5")
 
             def tick() -> None:
                 now = datetime.now()
@@ -201,52 +202,65 @@ def login_page() -> None:
 
             ui.timer(1.0, tick)
 
+        def do_login() -> None:
+
+            try:
+                user_id = int(user_id_input.value)
+            except Exception:
+                ui.notify("ID muss eine Zahl sein", color="negative")
+                return
+
+            last_name = (last_name_input.value or "").strip()
+            if not last_name:
+                ui.notify("Nachname ist erforderlich", color="negative")
+                return
+
+            password = (password_input.value or "").strip()
+
+            with session_scope() as session:
+                tmp_user = AuthService(session).requires_password_setup(
+                    user_id=user_id, last_name=last_name)
+                if tmp_user is not None:
+                    app.storage.user["pending_user_id"] = tmp_user.id
+                    ui.notify("Passwort ist noch nicht gesetzt – bitte setzen.", color="warning")
+                    ui.open("/set-password")
+                    return
+
+                if not password:
+                    ui.notify("Passwort ist erforderlich", color="negative")
+                    return
+
+                user = AuthService(session).authenticate(
+                    user_id=user_id, last_name=last_name, password=password)
+                if user is None:
+                    ui.notify("Login fehlgeschlagen", color="negative")
+                    return
+
+                app.storage.user["user_id"] = user.id
+
+            ui.open("/dashboard")
+
+        # --- SCHRITT 2: UI-Elemente DANACH aufbauen und Enter-Event anhängen ---
         with ui.card().classes("w-96"):
-            user_id_input = ui.input(
-                "ID", placeholder="z.B. 1").props("type=number")
-            last_name_input = ui.input("Nachname", placeholder="z.B. Müller")
-            password_input = ui.input("Passwort").props("type=password")
+            
+            user_id_input = (
+                ui.input("ID", placeholder="z.B. 1")
+                .props("type=number")
+                .on("keydown.enter", do_login)
+            )
+            
+            last_name_input = (
+                ui.input("Nachname", placeholder="z.B. Müller")
+                .on("keydown.enter", do_login)
+            )
+            
+            password_input = (
+                ui.input("Passwort", password=True, password_toggle_button=True)
+                .on("keydown.enter", do_login)
+            )
 
-    def do_login() -> None:
-        try:
-            user_id = int(user_id_input.value)
-        except Exception:
-            ui.notify("ID muss eine Zahl sein", color="negative")
-            return
-
-        last_name = (last_name_input.value or "").strip()
-        if not last_name:
-            ui.notify("Nachname ist erforderlich", color="negative")
-            return
-
-        password = (password_input.value or "").strip()
-
-        with session_scope() as session:
-            # If user must set/change password (seeded user or after reset), guide to setup.
-            tmp_user = AuthService(session).requires_password_setup(
-                user_id=user_id, last_name=last_name)
-            if tmp_user is not None:
-                app.storage.user["pending_user_id"] = tmp_user.id
-                ui.notify(
-                    "Passwort ist noch nicht gesetzt – bitte setzen.", color="warning")
-                ui.open("/set-password")
-                return
-
-            if not password:
-                ui.notify("Passwort ist erforderlich", color="negative")
-                return
-
-            user = AuthService(session).authenticate(
-                user_id=user_id, last_name=last_name, password=password)
-            if user is None:
-                ui.notify("Login fehlgeschlagen", color="negative")
-                return
-
-            app.storage.user["user_id"] = user.id
-
-        ui.open("/dashboard")
-
-    ui.button("Login", on_click=do_login).props("color=primary")
+            # Den Button rücken wir optisch direkt mit in die Karte unter die Inputs
+            ui.button("Login", on_click=do_login).props("color=primary w-full")
 
 
 @ui.page('/set-password')
@@ -259,11 +273,6 @@ def set_password_page() -> None:
         return
 
     ui.label('Passwort setzen').classes('text-h5 text-white')
-    p1 = ui.input('Neues Passwort').props('type=password')
-    p2 = ui.input('Passwort bestätigen').props('type=password')
-
-    ui.label('Policy: mind. 8 Zeichen, 1 Grossbuchstabe, 1 Zahl, 1 Sonderzeichen').classes(
-        'text-grey')
 
     def save() -> None:
         pw1 = (p1.value or '').strip()
@@ -287,10 +296,24 @@ def set_password_page() -> None:
         ui.notify('Passwort gesetzt. Bitte einloggen.', color='positive')
         ui.open('/')
 
-    ui.row()
-    ui.button('Speichern', on_click=save).props('color=primary')
-    ui.button('Abbrechen', on_click=lambda: (app.storage.user.pop(
-        'pending_user_id', None), ui.open('/'))).props('flat')
+    p1 = ui.input('Neues Passwort', password=True, password_toggle_button=True) \
+        .props('outlined dark label-color="white" color="white"') \
+        .classes('pw-input') \
+        .on('keydown.enter', save)
+        
+    p2 = ui.input('Passwort bestätigen', password=True, password_toggle_button=True) \
+        .props('outlined dark label-color="white" color="white"') \
+        .classes('pw-input') \
+        .on('keydown.enter', save)
+
+    ui.label('Policy: mind. 8 Zeichen, 1 Grossbuchstabe, 1 Zahl, 1 Sonderzeichen').classes(
+        'text-grey')
+
+    # 3. Die Buttons
+    with ui.row():
+        ui.button('Speichern', on_click=save).props('color=primary')
+        ui.button('Abbrechen', on_click=lambda: (app.storage.user.pop(
+            'pending_user_id', None), ui.open('/'))).props('flat text-white')
 
 
 @ui.page("/dashboard")
