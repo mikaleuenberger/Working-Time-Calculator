@@ -20,7 +20,9 @@ class AuthService:
             return None
         if user.last_name.casefold() != last_name.strip().casefold():
             return None
-        if bool(user.must_change_password) or (user.password_hash or "") == "":
+        has_no_password = user.password_hash is None or user.password_hash == ""
+
+        if bool(user.must_change_password) or has_no_password:
             return user
         return None
 
