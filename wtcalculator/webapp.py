@@ -257,13 +257,15 @@ class EmployeeDashboardUI:
         self.user_id = user_id
         self.controller = AuthController()
         self.current_date = datetime.now().strftime('%Y-%m-%d')
+        self.week_offset = 0
         self.build_ui()
 
     def build_ui(self):
-        with ui.tabs().classes('w-full') as tabs:
-            self.tab_entry = ui.tab('Erfassung')
-            self.tab_week = ui.tab('Woche')
-            self.tab_import = ui.tab('CSV Import')
+        with ui.tabs().classes('w-full bg-dark shadow-2 text-grey-5') \
+                .props('active-color=primary active-bg-color=grey-9 indicator-color=primary expand') as tabs:
+            self.tab_entry = ui.tab('Erfassung', icon='edit_calendar')
+            self.tab_week = ui.tab('Woche', icon='view_week')
+            self.tab_import = ui.tab('CSV Import', icon='file_upload')
 
         with ui.tab_panels(tabs, value=self.tab_entry).classes('w-full bg-transparent'):
             with ui.tab_panel(self.tab_entry):
@@ -271,7 +273,7 @@ class EmployeeDashboardUI:
             with ui.tab_panel(self.tab_week):
                 self.render_week_panel()
             with ui.tab_panel(self.tab_import):
-                ui.label("Import (folgt)").classes("text-white")
+                self.render_import_panel()
 
     def render_entry_panel(self):
         with ui.column().classes('w-full items-center q-gutter-y-md'):
@@ -361,8 +363,15 @@ class EmployeeDashboardUI:
                         # Hier speichern wir das Label für die Summe, um es später zu aktualisieren
                         self.week_total_label = ui.label('Gesamt: 0.00 h').classes(
                             'text-subtitle1 text-primary font-bold')
-                    ui.button(icon='refresh',
-                              on_click=self.refresh_week_table).props('flat')
+                    with ui.row().classes('items-center q-gutter-sm'):
+                        ui.button(icon='chevron_left',
+                                  on_click=self.prev_week).props('flat round')
+                        ui.button('Heute', on_click=self.curr_week).props(
+                            'outline size=sm')
+                        ui.button(icon='chevron_right',
+                                  on_click=self.next_week).props('flat round')
+                        ui.button(icon='refresh', on_click=self.refresh_week_table).props(
+                            'flat round')
 
                 columns = [
                     {'name': 'date', 'label': 'Datum',
@@ -377,11 +386,68 @@ class EmployeeDashboardUI:
                     columns=columns, rows=[]).classes('w-full')
                 self.refresh_week_table()
 
+    def render_import_panel(self):
+        with ui.column().classes('w-full items-center q-gutter-y-md'):
+            with ui.card().classes('w-full max-w-xl q-pa-md shadow-5'):
+                with ui.column().classes('items-center w-full q-gutter-y-sm'):
+                    ui.icon('file_upload', size='lg').classes('text-primary')
+                    ui.label('CSV Zeiterfassung importieren').classes(
+                        'text-h6')
+                    ui.label('Format: Datum; Arbeitsbeginn; Arbeitsende; Pause_min; ...').classes(
+                        'text-caption text-grey-7')
+
+                ui.separator().classes('q-my-md')
+
+                # Das Upload-Element nutzt deinen Handler
+                ui.upload(
+                    label="CSV-Datei auswählen (Semikolon getrennt)",
+                    on_upload=self.handle_upload,
+                    auto_upload=True
+                ).classes('w-full').props('accept=.csv')
+
+    def prev_week(self):
+        self.week_offset -= 1
+        self.refresh_week_table()
+
+    def next_week(self):
+        self.week_offset += 1
+        self.refresh_week_table()
+
+    def curr_week(self):
+        self.week_offset = 0
+        self.refresh_week_table()
+
     def refresh_week_table(self):
         # Wir holen die Daten und die Summe vom Controller
-        rows, total = self.controller.get_weekly_entries(self.user_id)
+        rows, total = self.controller.get_weekly_entries(
+            self.user_id, self.week_offset)
         self.week_table.rows = rows
         self.week_total_label.text = f"Gesamt diese Woche: {total:.2f} h"
+
+    async def handle_upload(self, e):
+        """Verarbeitet den CSV-Upload über den Controller/Service"""
+        try:
+            csv_bytes = e.content.read()
+
+            # Hier rufen wir den Controller auf (Stelle sicher, dass run_csv_import dort existiert)
+            imported, skipped = self.controller.run_csv_import(
+                self.user_id, csv_bytes)
+
+            if imported > 0:
+                ui.notify(
+                    f"Erfolg: {imported} Einträge importiert!", color='positive', icon='done')
+            if skipped > 0:
+                ui.notify(
+                    f"Info: {skipped} Einträge übersprungen (leer oder bereits vorhanden).", color='warning', icon='info')
+
+            # Ansichten aktualisieren
+            self.refresh_week_table()
+            # Falls du ein Monats-Panel hast, auch dieses refreshen:
+            # self.refresh_month_table()
+
+        except Exception as ex:
+            ui.notify(f"Fehler beim Import: {str(ex)}",
+                      color='negative', icon='error')
 
 
 class SupervisorDashboardUI:

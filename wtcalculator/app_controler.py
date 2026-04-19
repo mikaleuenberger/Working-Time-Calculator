@@ -4,7 +4,7 @@ from .services.user_service import UserService
 from .security import validate_password_policy
 from .models import User, TimeEntry
 from .services.time_entry_service import TimeEntryService
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class AuthController:
@@ -122,17 +122,19 @@ class AuthController:
             # Falls z.B. calculate_net_hours_and_comment einen Fehler wirft
             return {"status": "error", "message": f"Fehler bei der Berechnung: {str(e)}"}
 
-    def get_weekly_entries(self, user_id: int):
+    def get_weekly_entries(self, user_id: int, week_offset: int = 0):
         with session_scope() as session:
             service = TimeEntryService(session)
-            # Wir nehmen das heutige Datum als Referenz für "diese Woche"
-            today = datetime.now().date()
+            # Berechne den Referenz-Tag basierend auf dem Offset
+            target_date = datetime.now().date() + timedelta(weeks=week_offset)
+
             entries = service.list_week_entries(
-                user_id=user_id, any_day_in_week=today)
+                user_id=user_id, any_day_in_week=target_date)
 
-            # Summe der Woche berechnen
+            # Wichtig: Sortierung umkehren, damit das aktuellste Datum oben steht
+            entries.sort(key=lambda e: e.work_date, reverse=True)
+
             total_week = sum(e.net_hours for e in entries)
-
             rows = [{
                 'date': e.work_date.strftime('%a, %d.%m.'),
                 'start': e.start_time.strftime('%H:%M') if e.start_time else '-',
@@ -224,3 +226,12 @@ class AuthController:
                 session.delete(user)
                 return True
             return False
+
+    def run_csv_import(self, user_id, csv_bytes):
+        with session_scope() as session:
+            service = TimeEntryService(session)
+            user = session.get(User, user_id)
+            if not user:
+                return 0, 0
+            # Ruft deine bereits existierende Methode im Service auf
+            return service.import_csv(user=user, csv_bytes=csv_bytes, overwrite=True)
