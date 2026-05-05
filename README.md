@@ -40,11 +40,16 @@ Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit 
 
 ---
 
-### Wireframes / Mockups *in progress*
+### Wireframes / Mockups
 
-> 🚧 Add screenshots of the wireframe mockups you chose to implement.
+Mockup: Login
+![Wireframes – Home/Transactions](wtcalculator/docs/ui-images/login_rough.png)
 
-![Wireframes – Home/Transactions](docs/ui-images/wireframes.png)
+Mockup: CSV Import
+![Wireframes – Home/Transactions](wtcalculator/docs/ui-images/csv_import_rough.png)
+
+Mockup: Ansicht Vorgesetzter
+![Wireframes – Home/Transactions](wtcalculator/docs/ui-images/entries_rough.png)
 
 
 ---
