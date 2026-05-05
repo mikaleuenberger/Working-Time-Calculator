@@ -42,13 +42,13 @@ Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit 
 
 ### Wireframes / Mockups
 
-Mockup: Login
+#### Mockup: Login
 ![Wireframes – Home/Transactions](wtcalculator/docs/ui-images/login_rough.png)
 
-Mockup: CSV Import
+#### Mockup: CSV Import
 ![Wireframes – Home/Transactions](wtcalculator/docs/ui-images/csv_import_rough.png)
 
-Mockup: Ansicht Vorgesetzter
+#### Mockup: Ansicht Vorgesetzter
 ![Wireframes – Home/Transactions](wtcalculator/docs/ui-images/entries_rough.png)
 
 
@@ -56,23 +56,48 @@ Mockup: Ansicht Vorgesetzter
 
 ## 🏛️ Architecture *in progress*
 
-![UML Class Diagram](docs/architecture-diagrams/uml_class_architecture.png)
+![UML Class Diagram](wtcalculator/docs/ui-images/UML-diagram.png)
 
+---
 ### Layers
-- **UI:** NiceGUI (browser-based interface)  
-- **Application logic:** controllers and services  
-- **Persistence:** SQLite + ORM + data access (DAO)  
+---
+#### UI: NiceGUI
+Die Benutzeroberfläche wird mit NiceGUI umgesetzt. Sie dient zur Eingabe und Anzeige von Benutzerdaten, Zeiteinträgen und Auswertungen.
 
+#### Application logic: Services und TimeCalculator
+Die Geschäftslogik liegt in den Service-Klassen. AuthService verwaltet die Anmeldung, UserService die Benutzer, TimeEntryService die Zeiteinträge und ReportService die Monatsauswertungen. Der TimeCalculator berechnet die Nettoarbeitszeit und erzeugt Kommentare.
+
+#### Persistence: SQLite, ORM und Datenmodelle
+Die Daten werden über ORM-Modelle gespeichert. User und TimeEntry bilden die zentralen Datenobjekte. Ein Benutzer kann mehrere Zeiteinträge besitzen, während jeder Zeiteintrag genau einem Benutzer gehört. 
+
+---
 ### Design Decisions
-- MVC structure (Model–View–Controller)
-- Clear separation of concerns
-- Business logic independent of UI
+---
 
+#### Klare Trennung zwischen Daten und Logik
+User, TimeEntry, MonthlyReport und WorkTimeResult enthalten Daten. Die Services übernehmen die Verarbeitung und greifen auf diese Klassen zu.
+
+#### Service-orientierte Struktur
+Jede Service-Klasse hat eine klar abgegrenzte Aufgabe: Authentifizierung, Benutzerverwaltung, Zeiterfassung oder Reporting.
+
+#### Berechnungslogik ausgelagert
+Die Berechnung der Arbeitszeit ist im TimeCalculator gekapselt. Dadurch bleibt TimeEntryService übersichtlich und delegiert die Berechnung an eine eigene Klasse.
+
+---
 ### Patterns Used
-- MVC  
-- Repository / DAO  
-- Strategy (pricing rules)  
-- Adapter (invoice generation)  
+---
+
+#### Service Pattern
+AuthService, UserService, TimeEntryService und ReportService kapseln die Anwendungslogik.
+
+#### Repository / DAO Ansatz über Session
+Alle Services verwenden eine _session, um Daten zu lesen, zu speichern oder zu verwalten. Dadurch ist der Datenzugriff von der restlichen Logik getrennt.
+
+#### Model Relationship
+User und TimeEntry stehen in einer 1:n-Beziehung. Ein Benutzer kann viele Zeiteinträge haben, ein Zeiteintrag gehört zu genau einem Benutzer.
+
+#### DTO / Result Objects
+MonthlyReport und WorkTimeResult dienen als einfache Rückgabeobjekte für Reports und Berechnungsergebnisse.
 
 ---
 
