@@ -1,2 +1,2 @@
 nicegui==1.4.34
-SQLAlchemy==2.0.36
+SQLAlchemy==2.0.49

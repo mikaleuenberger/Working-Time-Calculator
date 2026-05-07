@@ -143,5 +143,8 @@ def render_dashboard_page():
 
 
 if __name__ in {"__main__", "__mp_main__"}:
-    # Das Secret kann ein beliebiger Text sein
-    ui.run(storage_secret='mein_super_geheimes_passwort_123')
+    # Railway/Container hosting
+    # - bind to 0.0.0.0 so the service is reachable from outside the container
+    port = int(os.environ.get("PORT", "8080"))
+
+    ui.run(host="0.0.0.0", port=port, storage_secret='wtcalculator_secret')
