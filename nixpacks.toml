@@ -1,0 +1,17 @@
+# Nixpacks configuration for Railway
+# Goal: keep the produced image smaller and make the final image push more reliable.
+
+[phases.setup]
+# You can add extra packages here if needed.
+# Nixpacks automatically adds python and build essentials for most Python apps.
+
+[phases.install]
+cmds = [
+  "python -m venv --copies /opt/venv",
+  ". /opt/venv/bin/activate && pip install --no-cache-dir -r requirements.txt",
+  "rm -rf /root/.cache/pip || true",
+  "rm -rf /tmp/pip-* || true"
+]
+
+[start]
+cmd = "python main2.py"

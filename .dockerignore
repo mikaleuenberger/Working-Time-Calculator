@@ -6,6 +6,9 @@
 .git
 .vscode
 
+# devcontainer (not needed for runtime)
+.devcontainer
+
 # local app state
 .nicegui
 __pycache__
@@ -13,3 +16,9 @@ __pycache__
 
 # reports / DB / local data (adjust if you want them in the image)
 data/
+
+# OS / tooling
+.DS_Store
+.pytest_cache
+.mypy_cache
+
