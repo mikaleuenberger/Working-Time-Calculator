@@ -147,4 +147,6 @@ if __name__ in {"__main__", "__mp_main__"}:
     # - bind to 0.0.0.0 so the service is reachable from outside the container
     port = int(os.environ.get("PORT", "8080"))
 
+    print(f"Starting NiceGUI on 0.0.0.0:{port} (PORT env: {os.environ.get('PORT')})")
+
     ui.run(host="0.0.0.0", port=port, storage_secret='wtcalculator_secret')
