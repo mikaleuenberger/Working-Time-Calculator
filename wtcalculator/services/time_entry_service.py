@@ -167,6 +167,7 @@ class TimeEntryService:
             except Exception:
                 skipped += 1
 
+        self._session.commit()
         return imported, skipped
 
     def get_weekly_hours(self, *, user_id: int, any_day_in_week: date, exclude_date: date | None) -> float:
