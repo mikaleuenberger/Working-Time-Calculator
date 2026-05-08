@@ -9,10 +9,32 @@ from sqlalchemy.orm import Session, sessionmaker
 
 
 def _default_sqlite_url() -> str:
-    data_dir = Path(__file__).resolve().parent.parent / "data"
-    data_dir.mkdir(parents=True, exist_ok=True)
-    db_path = data_dir / "wtcalculator.db"
-    return f"sqlite:///{db_path}"
+    # In containers (e.g. Railway) the application directory may be read-only.
+    # Prefer an attached volume at /data when available; otherwise fall back
+    # to /tmp (ephemeral).
+    preferred_dirs = [
+        Path(os.environ.get("WTCALC_DATA_DIR", "")) if os.environ.get("WTCALC_DATA_DIR") else None,
+        Path("/data"),
+        Path("/tmp"),
+        Path(__file__).resolve().parent.parent / "data",
+    ]
+
+    for candidate in preferred_dirs:
+        if candidate is None:
+            continue
+        try:
+            candidate.mkdir(parents=True, exist_ok=True)
+            test_file = candidate / ".write_test"
+            test_file.write_text("ok")
+            test_file.unlink(missing_ok=True)
+        except Exception:
+            continue
+        else:
+            db_path = candidate / "wtcalculator.db"
+            return f"sqlite:///{db_path}"
+
+    # Fallback: last resort in current working directory
+    return "sqlite:///wtcalculator.db"
 
 
 DB_URL = os.getenv("WTCALC_DB_URL", _default_sqlite_url())

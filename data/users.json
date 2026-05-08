@@ -1,0 +1,36 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "surname": "Hans",
+      "last_name": "Müller",
+      "email": "h.mueller@example.com",
+      "business_role": "Mitarbeiter",
+      "age": 30
+    },
+    {
+      "id": 2,
+      "surname": "Peter",
+      "last_name": "Suter",
+      "email": "p.suter@example.com",
+      "business_role": "Mitarbeiter",
+      "age": 28
+    },
+    {
+      "id": 3,
+      "surname": "Mara",
+      "last_name": "Hübner",
+      "email": "m.huebner@example.com",
+      "business_role": "Mitarbeiter",
+      "age": 17
+    },
+    {
+      "id": 4,
+      "surname": "Sara",
+      "last_name": "Ackermann",
+      "email": "s.ackermann@example.com",
+      "business_role": "Vorgesetzter",
+      "age": 42
+    }
+  ]
+}

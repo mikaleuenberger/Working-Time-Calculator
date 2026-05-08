@@ -143,6 +143,23 @@ def render_dashboard_page():
 
 
 if __name__ in {"__main__", "__mp_main__"}:
+    try:
+        init_db()
+        print("Database initialized (tables created if missing).")
+    except Exception as e:
+        print("ERROR: Database initialization failed:", e)
+
+    # Seed initial users from JSON (only if DB is empty)
+    try:
+        users_json = Path("data/users.json")
+        with session_scope() as session:
+            us = UserService(session)
+            created = us.seed_from_users_json_if_empty(users_json)
+            if created:
+                print(f"Seeded {created} users from {users_json}")
+    except Exception as e:
+        print("Warning: could not seed users from data/users.json:", e)
+
     # Railway/Container hosting
     # - bind to 0.0.0.0 so the service is reachable from outside the container
     port = int(os.environ.get("PORT", "8080"))
