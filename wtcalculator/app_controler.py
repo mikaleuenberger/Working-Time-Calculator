@@ -232,6 +232,6 @@ class AuthController:
             service = TimeEntryService(session)
             user = session.get(User, user_id)
             if not user:
-                return 0, 0
+                return 0, 0, ["User nicht gefunden"]
             # Ruft deine bereits existierende Methode im Service auf
             return service.import_csv(user=user, csv_bytes=csv_bytes, overwrite=True)

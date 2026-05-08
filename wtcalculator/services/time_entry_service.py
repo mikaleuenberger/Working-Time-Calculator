@@ -109,10 +109,10 @@ class TimeEntryService:
         user: User,
         csv_bytes: bytes,
         overwrite: bool = True,
-    ) -> tuple[int, int]:
+    ) -> tuple[int, int, list[str]]:
         """Import legacy CSV (semicolon separated) into DB.
 
-        Returns: (imported_count, skipped_count)
+        Returns: (imported_count, skipped_count, error_messages)
         """
 
         text = csv_bytes.decode('utf-8-sig', errors='replace')
@@ -120,11 +120,20 @@ class TimeEntryService:
 
         imported = 0
         skipped = 0
+        errors = []
 
-        for row in reader:
+        if reader.fieldnames is None:
+            return 0, 0, ["CSV hat keine Spalten"]
+
+        for row_idx, row in enumerate(reader, start=2):  # Start at 2 (header is row 1)
             try:
-                work_date = datetime.strptime(
-                    (row.get('Datum') or '').strip(), '%d.%m.%Y').date()
+                datum_str = (row.get('Datum') or '').strip()
+                if not datum_str:
+                    skipped += 1
+                    continue
+
+                work_date = datetime.strptime(datum_str, '%d.%m.%Y').date()
+                
                 start = (row.get('Arbeitsbeginn') or '').strip()
                 end = (row.get('Arbeitsende') or '').strip()
                 if not start or not end:
@@ -164,11 +173,11 @@ class TimeEntryService:
                         entry.comment = f"{entry.comment}; {legacy_comment}"
 
                 imported += 1
-            except Exception:
+            except Exception as e:
+                errors.append(f"Zeile {row_idx}: {str(e)}")
                 skipped += 1
 
-        self._session.commit()
-        return imported, skipped
+        return imported, skipped, errors
 
     def get_weekly_hours(self, *, user_id: int, any_day_in_week: date, exclude_date: date | None) -> float:
         start_of_week = any_day_in_week - \

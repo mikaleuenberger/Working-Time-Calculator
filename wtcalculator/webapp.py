@@ -429,8 +429,8 @@ class EmployeeDashboardUI:
         try:
             csv_bytes = e.content.read()
 
-            # Hier rufen wir den Controller auf (Stelle sicher, dass run_csv_import dort existiert)
-            imported, skipped = self.controller.run_csv_import(
+            # Hier rufen wir den Controller auf
+            imported, skipped, errors = self.controller.run_csv_import(
                 self.user_id, csv_bytes)
 
             if imported > 0:
@@ -438,7 +438,13 @@ class EmployeeDashboardUI:
                     f"Erfolg: {imported} Einträge importiert!", color='positive', icon='done')
             if skipped > 0:
                 ui.notify(
-                    f"Info: {skipped} Einträge übersprungen (leer oder bereits vorhanden).", color='warning', icon='info')
+                    f"Info: {skipped} Einträge übersprungen.", color='warning', icon='info')
+            
+            if errors:
+                for error in errors[:5]:  # Zeige max. 5 Fehler
+                    ui.notify(error, color='negative', icon='error')
+                if len(errors) > 5:
+                    ui.notify(f"... und {len(errors) - 5} weitere Fehler", color='negative', icon='error')
 
             # Ansichten aktualisieren
             self.refresh_week_table()
