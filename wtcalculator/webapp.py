@@ -9,6 +9,22 @@ from nicegui import ui, app
 from .app_controler import AuthController
 
 
+def _now() -> datetime:
+    """Return current time in configured timezone.
+
+    Railway containers often run in UTC, which shows an offset
+    for Europe/Zurich in summer time.
+    """
+
+    tz_name = os.environ.get("WTCALC_TZ", "Europe/Zurich")
+    if ZoneInfo is None:
+        return datetime.now()
+    try:
+        return datetime.now(ZoneInfo(tz_name))
+    except Exception:
+        return datetime.now()
+
+
 class LoginPageUI:
     def __init__(self):
         # Wir laden den Controller ein, der die harte Arbeit macht
@@ -74,21 +90,6 @@ class LoginPageUI:
             # --- 2. DIE UHR KARTE (Anzeige & Timer) ---
             with ui.card().classes("w-80 items-center justify-center"):
                 ui.label("Uhr").classes("text-h6")
-
-                def _now() -> datetime:
-                    """Return current time in configured timezone.
-
-                    Railway containers often run in UTC, which shows a 2h offset
-                    for Europe/Zurich in summer time.
-                    """
-
-                    tz_name = os.environ.get("WTCALC_TZ", "Europe/Zurich")
-                    if ZoneInfo is None:
-                        return datetime.now()
-                    try:
-                        return datetime.now(ZoneInfo(tz_name))
-                    except Exception:
-                        return datetime.now()
 
                 clock_html = ui.html(_clock_svg(_now(), size=260))
                 time_label = ui.label(_now().strftime("%H:%M:%S")).classes("text-h5")
