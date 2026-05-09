@@ -5,6 +5,22 @@ from .security import validate_password_policy
 from .models import User, TimeEntry
 from .services.time_entry_service import TimeEntryService
 from datetime import datetime, timedelta
+import os
+
+try:
+    from zoneinfo import ZoneInfo
+except Exception:  # pragma: no cover
+    ZoneInfo = None  # type: ignore
+
+
+def _today_local_date():
+    tz_name = os.environ.get('WTCALC_TZ', 'Europe/Zurich')
+    if ZoneInfo is not None:
+        try:
+            return datetime.now(ZoneInfo(tz_name)).date()
+        except Exception:
+            return datetime.now().date()
+    return datetime.now().date()
 
 
 class AuthController:
@@ -126,7 +142,7 @@ class AuthController:
         with session_scope() as session:
             service = TimeEntryService(session)
             # Berechne den Referenz-Tag basierend auf dem Offset
-            target_date = datetime.now().date() + timedelta(weeks=week_offset)
+            target_date = _today_local_date() + timedelta(weeks=week_offset)
 
             entries = service.list_week_entries(
                 user_id=user_id, any_day_in_week=target_date)

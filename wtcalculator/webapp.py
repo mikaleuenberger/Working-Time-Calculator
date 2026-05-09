@@ -1,4 +1,10 @@
 from datetime import datetime
+import os
+
+try:
+    from zoneinfo import ZoneInfo
+except Exception:  # pragma: no cover
+    ZoneInfo = None  # type: ignore
 from nicegui import ui, app
 from .app_controler import AuthController
 
@@ -68,12 +74,27 @@ class LoginPageUI:
             # --- 2. DIE UHR KARTE (Anzeige & Timer) ---
             with ui.card().classes("w-80 items-center justify-center"):
                 ui.label("Uhr").classes("text-h6")
-                clock_html = ui.html(_clock_svg(datetime.now(), size=260))
-                time_label = ui.label(datetime.now().strftime(
-                    "%H:%M:%S")).classes("text-h5")
+
+                def _now() -> datetime:
+                    """Return current time in configured timezone.
+
+                    Railway containers often run in UTC, which shows a 2h offset
+                    for Europe/Zurich in summer time.
+                    """
+
+                    tz_name = os.environ.get("WTCALC_TZ", "Europe/Zurich")
+                    if ZoneInfo is None:
+                        return datetime.now()
+                    try:
+                        return datetime.now(ZoneInfo(tz_name))
+                    except Exception:
+                        return datetime.now()
+
+                clock_html = ui.html(_clock_svg(_now(), size=260))
+                time_label = ui.label(_now().strftime("%H:%M:%S")).classes("text-h5")
 
                 def tick():
-                    now = datetime.now()
+                    now = _now()
                     time_label.text = now.strftime("%H:%M:%S")
                     clock_html.content = _clock_svg(now, size=260)
                     clock_html.update()
@@ -256,7 +277,7 @@ class EmployeeDashboardUI:
     def __init__(self, user_id: int):
         self.user_id = user_id
         self.controller = AuthController()
-        self.current_date = datetime.now().strftime('%Y-%m-%d')
+        self.current_date = _now().strftime('%Y-%m-%d')
         self.week_offset = 0
         self.build_ui()
 
@@ -285,7 +306,7 @@ class EmployeeDashboardUI:
                     # Linke Spalte: Datum (Kompakt als Input mit Popup)
                     with ui.column().classes('flex-1'):
                         with ui.input('Datum').bind_value(self, 'current_date') as date_input:
-                            self.current_date = datetime.now().strftime('%Y-%m-%d')
+                            self.current_date = _now().strftime('%Y-%m-%d')
                             with ui.menu() as menu:
                                 ui.date().bind_value(date_input)
 
@@ -331,7 +352,7 @@ class EmployeeDashboardUI:
                 self.refresh_month_table()
 
     def refresh_month_table(self):
-        now = datetime.now()
+        now = _now()
         data = self.controller.get_monthly_entries(
             self.user_id, now.year, now.month)
         self.month_table.rows = data
