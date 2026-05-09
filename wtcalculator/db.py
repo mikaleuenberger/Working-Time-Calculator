@@ -63,6 +63,11 @@ def init_db() -> None:
                 'must_change_password': "INTEGER NOT NULL DEFAULT 1",
             },
         )
+        _ensure_sqlite_unique_index(
+            table='users',
+            index_name='ux_users_email',
+            columns=['email'],
+        )
 
 
 def _ensure_sqlite_columns(*, table: str, columns: dict[str, str]) -> None:
@@ -76,6 +81,15 @@ def _ensure_sqlite_columns(*, table: str, columns: dict[str, str]) -> None:
                 continue
             conn.execute(
                 text(f"ALTER TABLE {table} ADD COLUMN {col_name} {ddl}"))
+
+
+def _ensure_sqlite_unique_index(*, table: str, index_name: str, columns: list[str]) -> None:
+    cols = ", ".join(columns)
+    with _engine.begin() as conn:
+        indexes = {row[1] for row in conn.execute(text(f"PRAGMA index_list({table})")).fetchall()}
+        if index_name in indexes:
+            return
+        conn.execute(text(f"CREATE UNIQUE INDEX {index_name} ON {table} ({cols})"))
 
 
 @contextmanager

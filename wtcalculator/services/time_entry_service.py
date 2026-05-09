@@ -17,6 +17,19 @@ class TimeEntryService:
     def __init__(self, session: Session):
         self._session = session
 
+    def entry_exists(self, *, user_id: int, work_date: date) -> bool:
+        existing = self._session.execute(
+            select(TimeEntry.id).where(and_(TimeEntry.user_id == user_id, TimeEntry.work_date == work_date)).limit(1)
+        ).first()
+        return existing is not None
+
+    @staticmethod
+    def normalize_user_comment(comment: str | None, *, limit: int = 30) -> str:
+        text = (comment or "").strip()
+        if len(text) > limit:
+            text = text[:limit]
+        return text
+
     def upsert_entry(
         self,
         *,

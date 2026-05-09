@@ -5,7 +5,9 @@ from .security import validate_password_policy
 from .models import User, TimeEntry
 from .services.time_entry_service import TimeEntryService
 from datetime import datetime, timedelta
+from datetime import time as dtime
 import os
+import re
 
 try:
     from zoneinfo import ZoneInfo
@@ -23,11 +25,52 @@ def _today_local_date():
     return datetime.now().date()
 
 
+def _minutes_since_midnight(t: dtime) -> int:
+    return int(t.hour) * 60 + int(t.minute)
+
+
+def _is_time_in_interval(*, t: dtime, start: dtime, end: dtime) -> bool:
+    """Return True if t is within the work interval [start, end] with night-shift support."""
+
+    tm = _minutes_since_midnight(t)
+    sm = _minutes_since_midnight(start)
+    em = _minutes_since_midnight(end)
+
+    # normal shift
+    if em >= sm:
+        return sm <= tm <= em
+
+    # night shift (end is next day)
+    return tm >= sm or tm <= em
+
+
+def _work_interval_minutes(*, start: dtime, end: dtime) -> int:
+    sm = _minutes_since_midnight(start)
+    em = _minutes_since_midnight(end)
+    if em >= sm:
+        return em - sm
+    return (24 * 60 - sm) + em
+
+
+def _parse_date_yyyy_mm_dd(value: str):
+    value = (value or "").strip()
+    # strict ISO date
+    return datetime.strptime(value, "%Y-%m-%d").date()
+
+
+def _parse_time_hh_mm(value: str):
+    value = (value or "").strip()
+    # strict 24h time (rejects 01:99 etc.)
+    return datetime.strptime(value, "%H:%M").time()
+
+
+_EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
+
 class AuthController:
     """Kapselt die reine Geschäftslogik für die Authentifizierung und Benutzerverwaltung."""
 
     def attempt_login(self, user_id_raw: str, last_name_raw: str, password_raw: str) -> dict:
-        # ... (Dein bestehender Code für attempt_login bleibt hier exakt gleich) ...
         try:
             user_id = int(user_id_raw)
         except ValueError:
@@ -108,10 +151,71 @@ class AuthController:
                 'approved': '✅' if e.approved else '⏳'
             } for e in entries]
 
-    def save_time_entry(self, user_id: int, date_str: str, start_s: str, end_s: str, ls_s: str, le_s: str):
+    def get_monthly_entries_with_total(self, user_id: int, year: int, month: int):
+        """Like get_monthly_entries, but also returns the summed net hours."""
+        with session_scope() as session:
+            service = TimeEntryService(session)
+            entries = service.list_month_entries(
+                user_id=user_id, year=year, month=month)
+
+            total_month = float(sum(e.net_hours for e in entries))
+            rows = [{
+                'id': e.id,
+                'date': e.work_date.strftime('%d.%m.%y'),
+                'start': e.start_time.strftime('%H:%M') if e.start_time else '',
+                'end': e.end_time.strftime('%H:%M') if e.end_time else '',
+                'net': f"{e.net_hours:.2f}",
+                'comment': e.comment or '',
+                'approved': '✅' if e.approved else '⏳'
+            } for e in entries]
+
+            return rows, total_month
+
+    def save_time_entry(self, user_id: int, date_str: str, start_s: str, end_s: str, ls_s: str, le_s: str, comment: str = ""):
         try:
-            # Das Datum in ein date-Objekt umwandeln
-            work_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            try:
+                work_date = _parse_date_yyyy_mm_dd(date_str)
+            except Exception:
+                return {"status": "error", "message": "Bitte geben Sie das Datum im korrekten Format an: YYYY-MM-DD"}
+
+            # Nur aktueller Monat darf erfasst werden (lokale Zeitzone)
+            today = _today_local_date()
+            if work_date.year != today.year or work_date.month != today.month:
+                return {"status": "error", "message": "Du kannst nur Arbeitszeiten im aktuellen Monat erfassen."}
+
+            # Input trim + Kommentar limit (30 Zeichen)
+            start_s = (start_s or "").strip()
+            end_s = (end_s or "").strip()
+            ls_s = (ls_s or "").strip()
+            le_s = (le_s or "").strip()
+            comment = (comment or "").strip()[:30]
+
+            # Validate basic time parsing so we can do pause checks
+            try:
+                start_t = _parse_time_hh_mm(start_s or "00:00")
+                end_t = _parse_time_hh_mm(end_s or "00:00")
+            except Exception:
+                return {"status": "error", "message": "Bitte geben Sie die Zeit im korrekten Format an: hh:mm"}
+
+            try:
+                lunch_start_t = _parse_time_hh_mm(ls_s) if ls_s else None
+                lunch_end_t = _parse_time_hh_mm(le_s) if le_s else None
+            except Exception:
+                return {"status": "error", "message": "Bitte geben Sie die Zeit im korrekten Format an: hh:mm"}
+
+            # Pause muss innerhalb Arbeitszeit sein
+            if (lunch_start_t is None) ^ (lunch_end_t is None):
+                return {"status": "error", "message": "Bitte Mittag Start und Ende vollständig ausfüllen (oder beide leer lassen)."}
+
+            if lunch_start_t is not None and lunch_end_t is not None:
+                if not _is_time_in_interval(t=lunch_start_t, start=start_t, end=end_t):
+                    return {"status": "error", "message": "Mittag Start muss innerhalb der Arbeitszeit liegen."}
+                if not _is_time_in_interval(t=lunch_end_t, start=start_t, end=end_t):
+                    return {"status": "error", "message": "Mittag Ende muss innerhalb der Arbeitszeit liegen."}
+
+                # for sanity: lunch must not be longer than work interval
+                if _work_interval_minutes(start=start_t, end=end_t) <= 0:
+                    return {"status": "error", "message": "Arbeitszeit ist ungültig."}
 
             with session_scope() as session:
                 # 1. Wir brauchen das User-Objekt für den Service
@@ -121,9 +225,11 @@ class AuthController:
 
                 service = TimeEntryService(session)
 
+                existed = service.entry_exists(user_id=user.id, work_date=work_date)
+
                 # 2. Aufruf der richtigen Funktion: upsert_entry
                 # WICHTIG: Die Parameter müssen exakt so heißen wie im Service!
-                service.upsert_entry(
+                entry = service.upsert_entry(
                     user=user,
                     work_date=work_date,
                     start_hhmm=start_s or "00:00",
@@ -133,7 +239,15 @@ class AuthController:
                     short_break_min=0  # Falls du kein Feld dafür hast, setzen wir 0
                 )
 
-                return {"status": "success"}
+                # User-Kommentar speichern (bei Anpassung ebenfalls)
+                if comment:
+                    # kombiniere Regel-Kommentar (vom Calculator) + User-Notiz
+                    if entry.comment and comment not in entry.comment:
+                        entry.comment = f"{comment}; {entry.comment}"
+                    else:
+                        entry.comment = comment
+
+                return {"status": "success", "action": "updated" if existed else "created"}
         except Exception as e:
             # Falls z.B. calculate_net_hours_and_comment einen Fehler wirft
             return {"status": "error", "message": f"Fehler bei der Berechnung: {str(e)}"}
@@ -209,7 +323,48 @@ class AuthController:
 
     def upsert_user(self, user_data: dict):
         """Erstellt einen neuen User oder aktualisiert einen bestehenden"""
+        # --- Validierung ---
+        first_name = str(user_data.get('first_name') or '').strip()
+        last_name = str(user_data.get('last_name') or '').strip()
+        email = str(user_data.get('email') or '').strip()
+        role = str(user_data.get('role') or '').strip()
+
+        if not first_name or not last_name:
+            return {"status": "error", "message": "Vorname und Nachname sind erforderlich."}
+
+        if len(first_name) > 20:
+            return {"status": "error", "message": "Vorname ist zu lang (max. 50 Zeichen)."}
+        if len(last_name) > 20:
+            return {"status": "error", "message": "Nachname ist zu lang (max. 50 Zeichen)."}
+
+        if not email:
+            return {"status": "error", "message": "E-Mail ist erforderlich."}
+
+        if not _EMAIL_RE.match(email):
+            return {"status": "error", "message": "Bitte geben Sie eine gültige E-Mail-Adresse ein."}
+
+        if len(email) > 30:
+            return {"status": "error", "message": "E-Mail ist zu lang (max. 255 Zeichen)."}
+
+        allowed_roles = {"Mitarbeiter", "Vorgesetzter"}
+        if role not in allowed_roles:
+            return {"status": "error", "message": "Ungültige Rolle."}
+
+        try:
+            age = int(user_data.get('age'))
+        except Exception:
+            return {"status": "error", "message": "Alter muss eine ganze Zahl sein."}
+
+        if age < 14 or age > 100:
+            return {"status": "error", "message": "Alter muss zwischen 14 und 100 liegen."}
+
         with session_scope() as session:
+            # Unique-Check (case-insensitive) - allow keeping own email on update
+            current_id = user_data.get('id')
+            for u in session.query(User).filter(User.email.ilike(email)).all():
+                if current_id is None or u.id != current_id:
+                    return {"status": "error", "message": "Diese E-Mail ist bereits vergeben."}
+
             if user_data.get('id'):
                 user = session.get(User, user_data['id'])
             else:
@@ -218,12 +373,12 @@ class AuthController:
                 user.password = f"{user_data['last_name']}123"
                 session.add(user)
 
-            user.first_name = user_data['first_name']
-            user.last_name = user_data['last_name']
-            user.email = user_data['email']
-            user.business_role = user_data['role']
-            user.age = int(user_data['age'])
-            return True
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
+            user.business_role = role
+            user.age = age
+            return {"status": "success"}
 
     def reset_password(self, user_id: int):
         """Setzt das Passwort auf ein Standard-Passwort zurück"""
@@ -249,5 +404,4 @@ class AuthController:
             user = session.get(User, user_id)
             if not user:
                 return 0, 0, ["User nicht gefunden"]
-            # Ruft deine bereits existierende Methode im Service auf
             return service.import_csv(user=user, csv_bytes=csv_bytes, overwrite=True)

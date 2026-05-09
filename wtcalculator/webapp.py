@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+import re
 
 try:
     from zoneinfo import ZoneInfo
@@ -280,6 +281,7 @@ class EmployeeDashboardUI:
         self.controller = AuthController()
         self.current_date = _now().strftime('%Y-%m-%d')
         self.week_offset = 0
+        self.month_offset = 0
         self.build_ui()
 
     def build_ui(self):
@@ -287,6 +289,7 @@ class EmployeeDashboardUI:
                 .props('active-color=primary active-bg-color=grey-9 indicator-color=primary expand') as tabs:
             self.tab_entry = ui.tab('Erfassung', icon='edit_calendar')
             self.tab_week = ui.tab('Woche', icon='view_week')
+            self.tab_month = ui.tab('Monat', icon='calendar_month')
             self.tab_import = ui.tab('CSV Import', icon='file_upload')
 
         with ui.tab_panels(tabs, value=self.tab_entry).classes('w-full bg-transparent'):
@@ -294,6 +297,8 @@ class EmployeeDashboardUI:
                 self.render_entry_panel()
             with ui.tab_panel(self.tab_week):
                 self.render_week_panel()
+            with ui.tab_panel(self.tab_month):
+                self.render_month_panel()
             with ui.tab_panel(self.tab_import):
                 self.render_import_panel()
 
@@ -306,13 +311,13 @@ class EmployeeDashboardUI:
                 with ui.row().classes('w-full items-start justify-between q-gutter-md'):
                     # Linke Spalte: Datum (Kompakt als Input mit Popup)
                     with ui.column().classes('flex-1'):
-                        with ui.input('Datum').bind_value(self, 'current_date') as date_input:
+                        with ui.input('Datum', placeholder='YYYY-MM-DD').bind_value(self, 'current_date') as date_input:
                             self.current_date = _now().strftime('%Y-%m-%d')
                             with ui.menu() as menu:
                                 ui.date().bind_value(date_input)
 
                         self.comment_input = ui.input(
-                            'Kommentar (optional)').classes('w-full')
+                            'Kommentar (optional)').classes('w-full').props('maxlength=30')
 
                     # Mittlere Spalte: Arbeitszeit
                     with ui.column().classes('flex-1'):
@@ -359,18 +364,44 @@ class EmployeeDashboardUI:
         self.month_table.rows = data
 
     def save_entry(self):
+        # Client-side quick checks for better UX (server still validates)
+        time_re = re.compile(r'^\d{2}:\d{2}$')
+        if not re.match(r'^\d{4}-\d{2}-\d{2}$', (self.current_date or '').strip()):
+            ui.notify('Bitte geben Sie das Datum im korrekten Format an: YYYY-MM-DD', color='negative')
+            return
+
+        for label, val in [
+            ('Beginn', self.start_input.value),
+            ('Ende', self.end_input.value),
+            ('Mittag Start', self.l_start_input.value),
+            ('Mittag Ende', self.l_end_input.value),
+        ]:
+            v = (val or '').strip()
+            if v and not time_re.match(v):
+                ui.notify('Bitte geben Sie die Zeit im korrekten Format an: hh:mm', color='negative')
+                return
+
         # Wir holen die Werte jetzt direkt aus den Attributen, die wir in build_ui definiert haben
+        user_comment = (self.comment_input.value or '').strip()
+        if len(user_comment) > 30:
+            user_comment = user_comment[:30]
+
         res = self.controller.save_time_entry(
             user_id=self.user_id,
             date_str=self.current_date,      # Hier liegt jetzt das Datum
             start_s=self.start_input.value,
             end_s=self.end_input.value,
             ls_s=self.l_start_input.value,
-            le_s=self.l_end_input.value
+            le_s=self.l_end_input.value,
+            comment=user_comment,
         )
 
         if res["status"] == "success":
-            ui.notify("Eintrag erfolgreich gespeichert!", color="positive")
+            action = res.get('action')
+            if action == 'updated':
+                ui.notify("Eintrag existierte bereits und wurde angepasst.", color="warning")
+            else:
+                ui.notify("Eintrag erfolgreich gespeichert!", color="positive")
             self.refresh_month_table()
             self.refresh_week_table()
         else:
@@ -408,6 +439,37 @@ class EmployeeDashboardUI:
                     columns=columns, rows=[]).classes('w-full')
                 self.refresh_week_table()
 
+    def render_month_panel(self):
+        with ui.column().classes('w-full items-center q-gutter-y-md'):
+            with ui.card().classes('w-full max-w-4xl q-pa-none shadow-5'):
+                with ui.row().classes('q-pa-md items-center justify-between w-full'):
+                    with ui.column():
+                        ui.label('Monatsübersicht').classes('text-h6')
+                        self.month_total_label = ui.label('Gesamt: 0.00 h').classes(
+                            'text-subtitle1 text-primary font-bold')
+                    with ui.row().classes('items-center q-gutter-sm'):
+                        ui.button(icon='chevron_left',
+                                  on_click=self.prev_month).props('flat round')
+                        ui.button('Dieser Monat', on_click=self.curr_month).props(
+                            'outline size=sm')
+                        ui.button(icon='chevron_right',
+                                  on_click=self.next_month).props('flat round')
+                        ui.button(icon='refresh', on_click=self.refresh_month_overview_table).props(
+                            'flat round')
+
+                columns = [
+                    {'name': 'date', 'label': 'Datum',
+                        'field': 'date', 'align': 'left'},
+                    {'name': 'start', 'label': 'Beginn', 'field': 'start'},
+                    {'name': 'end', 'label': 'Ende', 'field': 'end'},
+                    {'name': 'net', 'label': 'Netto', 'field': 'net'},
+                    {'name': 'comment', 'label': 'Kommentar',
+                        'field': 'comment', 'align': 'left'},
+                ]
+                self.month_overview_table = ui.table(
+                    columns=columns, rows=[]).classes('w-full')
+                self.refresh_month_overview_table()
+
     def render_import_panel(self):
         with ui.column().classes('w-full items-center q-gutter-y-md'):
             with ui.card().classes('w-full max-w-xl q-pa-md shadow-5'):
@@ -439,12 +501,44 @@ class EmployeeDashboardUI:
         self.week_offset = 0
         self.refresh_week_table()
 
+    def prev_month(self):
+        self.month_offset -= 1
+        self.refresh_month_overview_table()
+
+    def next_month(self):
+        self.month_offset += 1
+        self.refresh_month_overview_table()
+
+    def curr_month(self):
+        self.month_offset = 0
+        self.refresh_month_overview_table()
+
     def refresh_week_table(self):
         # Wir holen die Daten und die Summe vom Controller
         rows, total = self.controller.get_weekly_entries(
             self.user_id, self.week_offset)
         self.week_table.rows = rows
         self.week_total_label.text = f"Gesamt diese Woche: {total:.2f} h"
+
+    def refresh_month_overview_table(self):
+        now = _now()
+        year = now.year
+        month = now.month + self.month_offset
+
+        # normalize month/year (handles offsets like -1 or 14)
+        while month < 1:
+            month += 12
+            year -= 1
+        while month > 12:
+            month -= 12
+            year += 1
+
+        rows, total = self.controller.get_monthly_entries_with_total(
+            self.user_id, year, month)
+        self.month_overview_table.rows = rows
+
+        month_name = f"{month:02d}.{year}"
+        self.month_total_label.text = f"Gesamt {month_name}: {total:.2f} h"
 
     async def handle_upload(self, e):
         """Verarbeitet den CSV-Upload über den Controller/Service"""
@@ -564,10 +658,10 @@ class UserAdminUI:
             # --- User Dialog (für Neu & Bearbeiten) ---
             with ui.dialog() as self.user_dialog, ui.card().classes('w-80'):
                 ui.label('Mitarbeiterdaten').classes('text-h6')
-                self.f_name = ui.input('Vorname').classes('w-full')
-                self.l_name = ui.input('Nachname').classes('w-full')
-                self.email = ui.input('E-Mail').classes('w-full')
-                self.age = ui.number('Alter', format='%.0f').classes('w-full')
+                self.f_name = ui.input('Vorname').classes('w-full').props('maxlength=20')
+                self.l_name = ui.input('Nachname').classes('w-full').props('maxlength=20')
+                self.email = ui.input('E-Mail').classes('w-full').props('maxlength=30')
+                self.age = ui.number('Alter', format='%.0f', min=14, max=100).classes('w-full')
                 self.role = ui.select(
                     ['Mitarbeiter', 'Vorgesetzter'], label='Rolle').classes('w-full')
 
@@ -634,10 +728,14 @@ class UserAdminUI:
             'age': self.age.value,
             'role': self.role.value
         }
-        if self.controller.upsert_user(data):
-            ui.notify('Benutzer erfolgreich gespeichert!')
+        res = self.controller.upsert_user(data)
+        if isinstance(res, dict) and res.get('status') == 'success':
+            ui.notify('Benutzer erfolgreich gespeichert!', color='positive')
             self.user_dialog.close()
             self.refresh_data()
+        else:
+            msg = res.get('message') if isinstance(res, dict) else 'Ungültige Eingabe'
+            ui.notify(msg, color='negative')
 
     def do_reset(self, user_id):
         if self.controller.reset_password(user_id):
