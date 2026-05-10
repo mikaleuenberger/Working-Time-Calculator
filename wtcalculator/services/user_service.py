@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from ..models import User
 from ..security import hash_password, validate_password_policy
+from ..data_access.seed import seed_users
 
 
 class UserService:
@@ -18,35 +19,8 @@ class UserService:
         return list(self._session.execute(select(User).order_by(User.id)).scalars().all())
 
     def seed_from_users_json_if_empty(self, users_json_path: Path) -> int:
-        existing = self._session.execute(select(User.id).limit(1)).first()
-        if existing is not None:
-            return 0
-
-        if not users_json_path.exists():
-            return 0
-
-        data = json.loads(users_json_path.read_text(encoding="utf-8"))
-        created = 0
-        for raw in data.get("users", []):
-            try:
-                user_id = int(raw.get("id"))
-            except Exception:
-                continue
-
-            user = User(
-                id=user_id,
-                first_name=str(raw.get("surname", "")).strip(),
-                last_name=str(raw.get("last_name", "")).strip(),
-                email=str(raw.get("email", "")).strip(),
-                business_role=str(
-                    raw.get("business_role", "Mitarbeiter")).strip() or "Mitarbeiter",
-                age=int(raw.get("age", 18)),
-                password_hash="",
-                must_change_password=True,
-            )
-            self._session.add(user)
-            created += 1
-
+        created, skipped = seed_users(self._session, users_json_path)
+        # commit will be handled by the session scope in main2.py
         return created
 
     def set_password(self, *, user_id: int, password: str) -> bool:

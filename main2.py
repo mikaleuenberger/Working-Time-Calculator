@@ -11,7 +11,7 @@ from urllib.parse import quote
 import os
 
 # Auch hier den Ordnernamen davor setzen!
-from wtcalculator.db import init_db, session_scope
+from wtcalculator.data_access.db import init_db, session_scope
 from wtcalculator.models import TimeEntry, User
 from wtcalculator.services.auth_service import AuthService
 from wtcalculator.services.report_service import ReportService
