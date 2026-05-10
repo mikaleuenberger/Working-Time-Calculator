@@ -160,6 +160,20 @@ if __name__ in {"__main__", "__mp_main__"}:
     except Exception as e:
         print("Warning: could not seed users from data/users.json:", e)
 
+    try:
+        time_csv = Path("data/time_entries.csv")
+        if time_csv.exists():
+            from wtcalculator.data_access.seed import seed_time_entries
+            with session_scope() as session:
+                imported, skipped, errors = seed_time_entries(session, time_csv, overwrite=False)
+                if imported or skipped:
+                    print(f"Imported {imported} time entries, skipped {skipped} (errors: {len(errors)}) from {time_csv}")
+                if errors:
+                    for err in errors:
+                        print(" -", err)
+    except Exception as e:
+        print("Warning: could not import time entries:", e)
+
     # Railway/Container hosting
     # - bind to 0.0.0.0 so the service is reachable from outside the container
     port = int(os.environ.get("PORT", "8080"))

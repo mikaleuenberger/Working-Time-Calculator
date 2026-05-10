@@ -8,6 +8,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from ..models import User
+from ..services.time_entry_service import TimeEntryService
+from sqlalchemy import select
+import csv
+import io
 
 
 def _normalize_user_record(raw: dict) -> dict:
@@ -76,3 +80,94 @@ def seed_users(session: Session, users_json_path: Path) -> Tuple[int, int]:
         created += 1
 
     return created, skipped
+
+
+def seed_time_entries(session: Session, csv_path: Path, *, overwrite: bool = True) -> tuple[int, int, list[str]]:
+    
+    if not csv_path.exists():
+        return 0, 0, [f"CSV file not found: {csv_path}"]
+
+    text = csv_path.read_text(encoding="utf-8-sig")
+    reader = csv.DictReader(io.StringIO(text), delimiter=';')
+
+    imported = 0
+    skipped = 0
+    errors: list[str] = []
+
+    tes = TimeEntryService(session)
+
+    if reader.fieldnames is None:
+        return 0, 0, ["CSV hat keine Spalten"]
+
+    for row_idx, row in enumerate(reader, start=2):
+        try:
+            user_id_raw = (row.get('UserId') or row.get('UserID') or '').strip()
+            email_raw = (row.get('Email') or row.get('E-Mail') or '').strip()
+
+            user = None
+            if user_id_raw:
+                try:
+                    uid = int(user_id_raw)
+                    user = session.get(User, uid)
+                except Exception:
+                    user = None
+
+            if user is None and email_raw:
+                stmt = select(User).where(User.email == email_raw)
+                user = session.execute(stmt).scalar_one_or_none()
+
+            if user is None:
+                skipped += 1
+                errors.append(f"Zeile {row_idx}: Benutzer nicht gefunden (UserId/Email)")
+                continue
+
+            datum_str = (row.get('Datum') or '').strip()
+            if not datum_str:
+                skipped += 1
+                errors.append(f"Zeile {row_idx}: kein Datum")
+                continue
+
+            from datetime import datetime
+            work_date = datetime.strptime(datum_str, '%d.%m.%Y').date()
+
+            start = (row.get('Arbeitsbeginn') or '').strip()
+            end = (row.get('Arbeitsende') or '').strip()
+            if not start or not end:
+                skipped += 1
+                errors.append(f"Zeile {row_idx}: Start/End fehlt")
+                continue
+
+            lunch_start = (row.get('Mittag_beginn') or '').strip() or None
+            lunch_end = (row.get('Mittag_ende') or '').strip() or None
+            short_break_min = int((row.get('Pause_min') or '0').strip() or 0)
+            legacy_comment = (row.get('Kommentar') or '').strip()
+
+            # check overwrite flag
+            if not overwrite:
+                if tes.entry_exists(user_id=user.id, work_date=work_date):
+                    skipped += 1
+                    continue
+
+            entry = tes.upsert_entry(
+                user=user,
+                work_date=work_date,
+                start_hhmm=start,
+                end_hhmm=end,
+                lunch_start_hhmm=lunch_start,
+                lunch_end_hhmm=lunch_end,
+                short_break_min=short_break_min,
+            )
+
+            if legacy_comment:
+                if not entry.comment:
+                    entry.comment = legacy_comment
+                elif legacy_comment not in entry.comment:
+                    entry.comment = f"{entry.comment}; {legacy_comment}"
+
+            imported += 1
+
+        except Exception as e:
+            errors.append(f"Zeile {row_idx}: {e}")
+            skipped += 1
+
+    return imported, skipped, errors
