@@ -17,6 +17,12 @@ class TimeEntryService:
     def __init__(self, session: Session):
         self._session = session
 
+    @staticmethod
+    def _week_bounds(any_day_in_week: date) -> tuple[date, date]:
+        start_of_week = any_day_in_week - timedelta(days=any_day_in_week.weekday())
+        end_of_week = start_of_week + timedelta(days=7)
+        return start_of_week, end_of_week
+
     def entry_exists(self, *, user_id: int, work_date: date) -> bool:
         existing = self._session.execute(
             select(TimeEntry.id).where(and_(TimeEntry.user_id == user_id, TimeEntry.work_date == work_date)).limit(1)
@@ -39,7 +45,7 @@ class TimeEntryService:
         end_hhmm: str,
         lunch_start_hhmm: str | None,
         lunch_end_hhmm: str | None,
-        short_break_min: int,
+        short_break_min: int = 0,
     ) -> TimeEntry:
         base_result = calculate_net_hours_and_comment(
             start_hhmm=start_hhmm,
@@ -103,9 +109,7 @@ class TimeEntryService:
         )
 
     def list_week_entries(self, *, user_id: int, any_day_in_week: date) -> list[TimeEntry]:
-        start_of_week = any_day_in_week - \
-            timedelta(days=any_day_in_week.weekday())
-        end_of_week = start_of_week + timedelta(days=7)
+        start_of_week, end_of_week = self._week_bounds(any_day_in_week)
         return list(
             self._session.execute(
                 select(TimeEntry)
@@ -193,9 +197,7 @@ class TimeEntryService:
         return imported, skipped, errors
 
     def get_weekly_hours(self, *, user_id: int, any_day_in_week: date, exclude_date: date | None) -> float:
-        start_of_week = any_day_in_week - \
-            timedelta(days=any_day_in_week.weekday())
-        end_of_week = start_of_week + timedelta(days=7)
+        start_of_week, end_of_week = self._week_bounds(any_day_in_week)
 
         stmt = select(TimeEntry).where(
             and_(TimeEntry.user_id == user_id, TimeEntry.work_date >=
@@ -223,3 +225,40 @@ class TimeEntryService:
             return False
         entry.approved = True
         return True
+
+    def approve_entries_batch(self, entry_ids: list[int]) -> int:
+        """Approve multiple entries at once. Returns count of approved entries."""
+        count = 0
+        for entry_id in entry_ids:
+            entry = self._session.get(TimeEntry, entry_id)
+            if entry is not None and not entry.approved:
+                entry.approved = True
+                count += 1
+        return count
+
+    def list_entries_for_approval(
+        self,
+        user_id: int | None = None,
+        year: int | None = None,
+        month: int | None = None,
+        approved_only: bool | None = None,
+    ) -> list[TimeEntry]:
+        """List entries with optional filters for the approval view."""
+        query = select(TimeEntry)
+
+        if user_id is not None:
+            query = query.where(TimeEntry.user_id == user_id)
+        if year is not None and month is not None:
+            from datetime import date
+            start = date(year, month, 1)
+            if month == 12:
+                end = date(year + 1, 1, 1)
+            else:
+                end = date(year, month + 1, 1)
+            query = query.where(TimeEntry.work_date >= start, TimeEntry.work_date < end)
+        if approved_only is not None:
+            query = query.where(TimeEntry.approved == approved_only)
+
+        query = query.order_by(TimeEntry.work_date.desc())
+
+        return list(self._session.execute(query).scalars().all())

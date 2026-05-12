@@ -1,4 +1,5 @@
-from .db import session_scope
+from .constants import DEFAULT_TIMEZONE, NAME_MAX_LENGTH, EMAIL_MAX_LENGTH, AGE_MIN, AGE_MAX, VALID_ROLES, COMMENT_MAX_LENGTH, MIN_LUNCH_BREAK_MINUTES, MAX_WEEKLY_HOURS, MIN_BREAK_FOR_AUTO_DEDUCT_HOURS
+from .data_access.db import session_scope
 from .services.auth_service import AuthService
 from .services.user_service import UserService
 from .security import validate_password_policy
@@ -16,7 +17,7 @@ except Exception:  # pragma: no cover
 
 
 def _today_local_date():
-    tz_name = os.environ.get('WTCALC_TZ', 'Europe/Zurich')
+    tz_name = os.environ.get('WTCALC_TZ', DEFAULT_TIMEZONE)
     if ZoneInfo is not None:
         try:
             return datetime.now(ZoneInfo(tz_name)).date()
@@ -65,6 +66,19 @@ def _parse_time_hh_mm(value: str):
 
 
 _EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
+
+def _entry_dict(e) -> dict:
+    """Convert TimeEntry to display dict."""
+    return {
+        'id': e.id,
+        'date': e.work_date.strftime('%d.%m.%y'),
+        'start': e.start_time.strftime('%H:%M') if e.start_time else '',
+        'end': e.end_time.strftime('%H:%M') if e.end_time else '',
+        'net': f"{e.net_hours:.2f}",
+        'comment': e.comment or '',
+        'approved': '✅' if e.approved else '⏳'
+    }
 
 
 class AuthController:
@@ -141,15 +155,7 @@ class AuthController:
             service = TimeEntryService(session)
             entries = service.list_month_entries(
                 user_id=user_id, year=year, month=month)
-            return [{
-                'id': e.id,
-                'date': e.work_date.strftime('%d.%m.%y'),
-                'start': e.start_time.strftime('%H:%M') if e.start_time else '',
-                'end': e.end_time.strftime('%H:%M') if e.end_time else '',
-                'net': f"{e.net_hours:.2f}",
-                'comment': e.comment or '',
-                'approved': '✅' if e.approved else '⏳'
-            } for e in entries]
+            return [_entry_dict(e) for e in entries]
 
     def get_monthly_entries_with_total(self, user_id: int, year: int, month: int):
         """Like get_monthly_entries, but also returns the summed net hours."""
@@ -157,100 +163,114 @@ class AuthController:
             service = TimeEntryService(session)
             entries = service.list_month_entries(
                 user_id=user_id, year=year, month=month)
-
+            rows = [_entry_dict(e) for e in entries]
             total_month = float(sum(e.net_hours for e in entries))
-            rows = [{
-                'id': e.id,
-                'date': e.work_date.strftime('%d.%m.%y'),
-                'start': e.start_time.strftime('%H:%M') if e.start_time else '',
-                'end': e.end_time.strftime('%H:%M') if e.end_time else '',
-                'net': f"{e.net_hours:.2f}",
-                'comment': e.comment or '',
-                'approved': '✅' if e.approved else '⏳'
-            } for e in entries]
-
             return rows, total_month
 
-    def save_time_entry(self, user_id: int, date_str: str, start_s: str, end_s: str, ls_s: str, le_s: str, comment: str = ""):
+    def save_time_entry(self, user_id: int, date_str: str, start_s: str, end_s: str, pause_minutes: int, comment: str = ""):
+        work_date, error = self._parse_and_validate_date(date_str)
+        if error:
+            return error
+
+        today = _today_local_date()
+        if work_date.year != today.year or work_date.month != today.month:
+            return {"status": "error", "message": "Du kannst nur Arbeitszeiten im aktuellen Monat erfassen."}
+
+        start_s = (start_s or "").strip()
+        end_s = (end_s or "").strip()
+        comment = (comment or "").strip()[:COMMENT_MAX_LENGTH]
+
+        start_t, end_t, error = self._parse_times(start_s, end_s)
+        if error:
+            return error
+
+        # Pre-calculate gross hours for this entry (before break deduction)
+        t_start_dt = datetime.combine(date(1900, 1, 1), start_t)
+        t_end_dt = datetime.combine(date(1900, 1, 1), end_t)
+        if t_end_dt <= t_start_dt:
+            t_end_dt += timedelta(days=1)
+        gross_hours = (t_end_dt - t_start_dt).total_seconds() / 3600
+
+        # Check minimum break requirement (>= 6h work → >= 30min break)
+        notifications = []
+        if gross_hours >= MIN_BREAK_FOR_AUTO_DEDUCT_HOURS and pause_minutes < MIN_LUNCH_BREAK_MINUTES:
+            notifications.append(f"Warnung: Mindestpause ({MIN_LUNCH_BREAK_MINUTES} min) nicht erreicht!")
+
         try:
-            try:
-                work_date = _parse_date_yyyy_mm_dd(date_str)
-            except Exception:
-                return {"status": "error", "message": "Bitte geben Sie das Datum im korrekten Format an: YYYY-MM-DD"}
-
-            # Nur aktueller Monat darf erfasst werden (lokale Zeitzone)
-            today = _today_local_date()
-            if work_date.year != today.year or work_date.month != today.month:
-                return {"status": "error", "message": "Du kannst nur Arbeitszeiten im aktuellen Monat erfassen."}
-
-            # Input trim + Kommentar limit (30 Zeichen)
-            start_s = (start_s or "").strip()
-            end_s = (end_s or "").strip()
-            ls_s = (ls_s or "").strip()
-            le_s = (le_s or "").strip()
-            comment = (comment or "").strip()[:30]
-
-            # Validate basic time parsing so we can do pause checks
-            try:
-                start_t = _parse_time_hh_mm(start_s or "00:00")
-                end_t = _parse_time_hh_mm(end_s or "00:00")
-            except Exception:
-                return {"status": "error", "message": "Bitte geben Sie die Zeit im korrekten Format an: hh:mm"}
-
-            try:
-                lunch_start_t = _parse_time_hh_mm(ls_s) if ls_s else None
-                lunch_end_t = _parse_time_hh_mm(le_s) if le_s else None
-            except Exception:
-                return {"status": "error", "message": "Bitte geben Sie die Zeit im korrekten Format an: hh:mm"}
-
-            # Pause muss innerhalb Arbeitszeit sein
-            if (lunch_start_t is None) ^ (lunch_end_t is None):
-                return {"status": "error", "message": "Bitte Mittag Start und Ende vollständig ausfüllen (oder beide leer lassen)."}
-
-            if lunch_start_t is not None and lunch_end_t is not None:
-                if not _is_time_in_interval(t=lunch_start_t, start=start_t, end=end_t):
-                    return {"status": "error", "message": "Mittag Start muss innerhalb der Arbeitszeit liegen."}
-                if not _is_time_in_interval(t=lunch_end_t, start=start_t, end=end_t):
-                    return {"status": "error", "message": "Mittag Ende muss innerhalb der Arbeitszeit liegen."}
-
-                # for sanity: lunch must not be longer than work interval
-                if _work_interval_minutes(start=start_t, end=end_t) <= 0:
-                    return {"status": "error", "message": "Arbeitszeit ist ungültig."}
-
             with session_scope() as session:
-                # 1. Wir brauchen das User-Objekt für den Service
                 user = session.get(User, user_id)
                 if not user:
                     return {"status": "error", "message": "User nicht gefunden"}
 
                 service = TimeEntryService(session)
-
                 existed = service.entry_exists(user_id=user.id, work_date=work_date)
 
-                # 2. Aufruf der richtigen Funktion: upsert_entry
-                # WICHTIG: Die Parameter müssen exakt so heißen wie im Service!
+                # Check weekly hours BEFORE saving (exclude current date to get existing total)
+                weekly_before = service.get_weekly_hours(
+                    user_id=user.id, any_day_in_week=work_date, exclude_date=work_date)
+                projected_weekly = weekly_before + max(0, gross_hours - pause_minutes / 60)
+
+                if projected_weekly > MAX_WEEKLY_HOURS:
+                    notifications.append(f"Warnung: Wochenstunden {projected_weekly:.1f}h > {int(MAX_WEEKLY_HOURS)}h!")
+
                 entry = service.upsert_entry(
                     user=user,
                     work_date=work_date,
                     start_hhmm=start_s or "00:00",
                     end_hhmm=end_s or "00:00",
-                    lunch_start_hhmm=ls_s if ls_s else None,
-                    lunch_end_hhmm=le_s if le_s else None,
-                    short_break_min=0  # Falls du kein Feld dafür hast, setzen wir 0
+                    lunch_start_hhmm=None,
+                    lunch_end_hhmm=None,
+                    short_break_min=pause_minutes,
                 )
 
-                # User-Kommentar speichern (bei Anpassung ebenfalls)
                 if comment:
-                    # kombiniere Regel-Kommentar (vom Calculator) + User-Notiz
                     if entry.comment and comment not in entry.comment:
                         entry.comment = f"{comment}; {entry.comment}"
                     else:
                         entry.comment = comment
 
-                return {"status": "success", "action": "updated" if existed else "created"}
+                return {"status": "success", "action": "updated" if existed else "created", "notifications": notifications}
         except Exception as e:
-            # Falls z.B. calculate_net_hours_and_comment einen Fehler wirft
             return {"status": "error", "message": f"Fehler bei der Berechnung: {str(e)}"}
+
+    @staticmethod
+    def _parse_and_validate_date(date_str: str) -> tuple:
+        try:
+            return _parse_date_yyyy_mm_dd(date_str), None
+        except Exception:
+            return None, {"status": "error", "message": "Bitte geben Sie das Datum im korrekten Format an: YYYY-MM-DD"}
+
+    @staticmethod
+    def _parse_times(start_s: str, end_s: str) -> tuple:
+        try:
+            start_t = _parse_time_hh_mm(start_s or "00:00")
+            end_t = _parse_time_hh_mm(end_s or "00:00")
+            return start_t, end_t, None
+        except Exception:
+            return None, None, {"status": "error", "message": "Bitte geben Sie die Zeit im korrekten Format an: hh:mm"}
+
+    @staticmethod
+    def _parse_lunch_times(ls_s: str, le_s: str) -> tuple:
+        try:
+            lunch_start_t = _parse_time_hh_mm(ls_s) if ls_s else None
+            lunch_end_t = _parse_time_hh_mm(le_s) if le_s else None
+            return lunch_start_t, lunch_end_t, None
+        except Exception:
+            return None, None, {"status": "error", "message": "Bitte geben Sie die Zeit im korrekten Format an: hh:mm"}
+
+    @staticmethod
+    def _validate_lunch_interval(start_t, end_t, lunch_start_t, lunch_end_t) -> dict | None:
+        if (lunch_start_t is None) ^ (lunch_end_t is None):
+            return {"status": "error", "message": "Bitte Mittag Start und Ende vollständig ausfüllen (oder beide leer lassen)."}
+
+        if lunch_start_t is not None and lunch_end_t is not None:
+            if not _is_time_in_interval(t=lunch_start_t, start=start_t, end=end_t):
+                return {"status": "error", "message": "Mittag Start muss innerhalb der Arbeitszeit liegen."}
+            if not _is_time_in_interval(t=lunch_end_t, start=start_t, end=end_t):
+                return {"status": "error", "message": "Mittag Ende muss innerhalb der Arbeitszeit liegen."}
+            if _work_interval_minutes(start=start_t, end=end_t) <= 0:
+                return {"status": "error", "message": "Arbeitszeit ist ungültig."}
+        return None
 
     def get_weekly_entries(self, user_id: int, week_offset: int = 0):
         with session_scope() as session:
@@ -287,6 +307,43 @@ class AuthController:
                 'hours': f"{e.net_hours:.2f} h",
                 'comment': e.comment or ''
             } for e in entries if "❌ ABGELEHNT" not in (e.comment or "")]
+
+    def get_entries_for_approval(self, user_id: int | None = None, year: int | None = None, month: int | None = None):
+        """Holt Einträge für die Freigabe mit optionalen Filtern."""
+        with session_scope() as session:
+            service = TimeEntryService(session)
+            entries = service.list_entries_for_approval(
+                user_id=user_id, year=year, month=month, approved_only=False
+            )
+
+            return [{
+                'id': e.id,
+                'user_id': e.user_id,
+                'user': f"{e.user.first_name} {e.user.last_name}",
+                'date': e.work_date.strftime('%d.%m.%Y'),
+                'hours': f"{e.net_hours:.2f} h",
+                'net_hours': e.net_hours,
+                'comment': e.comment or '',
+                'approved': e.approved
+            } for e in entries if "❌ ABGELEHNT" not in (e.comment or "")]
+
+    def get_all_employees(self):
+        """Holt alle Mitarbeiter für die Filter-Liste."""
+        with session_scope() as session:
+            users = session.query(User).all()
+            return [{
+                'id': u.id,
+                'name': f"{u.first_name} {u.last_name}"
+            } for u in users]
+
+    def approve_entries_batch(self, entry_ids: list[int]):
+        """Genehmigt mehrere Einträge auf einmal."""
+        if not entry_ids:
+            return 0
+        with session_scope() as session:
+            service = TimeEntryService(session)
+            count = service.approve_entries_batch(entry_ids)
+            return count
 
     def approve_entry(self, entry_id: int):
         """Gibt einen spezifischen Eintrag frei"""
@@ -332,10 +389,10 @@ class AuthController:
         if not first_name or not last_name:
             return {"status": "error", "message": "Vorname und Nachname sind erforderlich."}
 
-        if len(first_name) > 20:
-            return {"status": "error", "message": "Vorname ist zu lang (max. 50 Zeichen)."}
-        if len(last_name) > 20:
-            return {"status": "error", "message": "Nachname ist zu lang (max. 50 Zeichen)."}
+        if len(first_name) > NAME_MAX_LENGTH:
+            return {"status": "error", "message": f"Vorname ist zu lang (max. {NAME_MAX_LENGTH} Zeichen)."}
+        if len(last_name) > NAME_MAX_LENGTH:
+            return {"status": "error", "message": f"Nachname ist zu lang (max. {NAME_MAX_LENGTH} Zeichen)."}
 
         if not email:
             return {"status": "error", "message": "E-Mail ist erforderlich."}
@@ -343,11 +400,10 @@ class AuthController:
         if not _EMAIL_RE.match(email):
             return {"status": "error", "message": "Bitte geben Sie eine gültige E-Mail-Adresse ein."}
 
-        if len(email) > 30:
-            return {"status": "error", "message": "E-Mail ist zu lang (max. 255 Zeichen)."}
+        if len(email) > EMAIL_MAX_LENGTH:
+            return {"status": "error", "message": f"E-Mail ist zu lang (max. {EMAIL_MAX_LENGTH} Zeichen)."}
 
-        allowed_roles = {"Mitarbeiter", "Vorgesetzter"}
-        if role not in allowed_roles:
+        if role not in VALID_ROLES:
             return {"status": "error", "message": "Ungültige Rolle."}
 
         try:
@@ -355,8 +411,8 @@ class AuthController:
         except Exception:
             return {"status": "error", "message": "Alter muss eine ganze Zahl sein."}
 
-        if age < 14 or age > 100:
-            return {"status": "error", "message": "Alter muss zwischen 14 und 100 liegen."}
+        if age < AGE_MIN or age > AGE_MAX:
+            return {"status": "error", "message": f"Alter muss zwischen {AGE_MIN} und {AGE_MAX} liegen."}
 
         with session_scope() as session:
             # Unique-Check (case-insensitive) - allow keeping own email on update
@@ -369,8 +425,8 @@ class AuthController:
                 user = session.get(User, user_data['id'])
             else:
                 user = User()
-                # Standard-Passwort für neue User (z.B. Nachname123)
-                user.password = f"{user_data['last_name']}123"
+                user.password_hash = ""
+                user.must_change_password = True
                 session.add(user)
 
             user.first_name = first_name
@@ -405,3 +461,4 @@ class AuthController:
             if not user:
                 return 0, 0, ["User nicht gefunden"]
             return service.import_csv(user=user, csv_bytes=csv_bytes, overwrite=True)
+            

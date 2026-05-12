@@ -68,21 +68,22 @@ def calculate_net_hours_and_comment(
     if lunch_start_hhmm and lunch_end_hhmm:
         l_start = datetime.combine(date(1900, 1, 1), _parse_hhmm(lunch_start_hhmm))
         l_end = datetime.combine(date(1900, 1, 1), _parse_hhmm(lunch_end_hhmm))
-        if l_end < l_start:
-            l_end += timedelta(days=1)
-        lunch_minutes = (l_end - l_start).total_seconds() / 60
 
-        if lunch_minutes < MIN_LUNCH_BREAK_MIN:
-            comment_parts.append(f"Mittag zu kurz ({int(lunch_minutes)} min)")
+        raw_lunch_minutes = (l_end - l_start).total_seconds() / 60
 
-    elif gross_work_duration.total_seconds() >= 6 * 3600:
-        if is_night_shift:
-            comment_parts.append("Nachtschicht erkannt: Kein automatischer Mittagsabzug.")
+        if raw_lunch_minutes < 0:
+            comment_parts.append("Mittagspause: Ende vor Start – bitte korrigieren.")
+            lunch_minutes = 0
+        elif raw_lunch_minutes > 180:
+            comment_parts.append(f"Mittagspause > 3h – unüblich, bitte prüfen.")
+            lunch_minutes = raw_lunch_minutes
         else:
-            lunch_minutes = MIN_LUNCH_BREAK_MIN
-            comment_parts.append(
-                f"Keine Mittagszeit erfasst, {MIN_LUNCH_BREAK_MIN} min automatisch abgezogen"
-            )
+            if l_end < l_start:
+                l_end += timedelta(days=1)
+            lunch_minutes = (l_end - l_start).total_seconds() / 60
+
+            if lunch_minutes < MIN_LUNCH_BREAK_MIN:
+                comment_parts.append(f"Mittag zu kurz ({int(lunch_minutes)} min)")
 
     total_break_minutes = float(max(0, short_break_min)) + lunch_minutes
     net_seconds = gross_work_duration.total_seconds() - total_break_minutes * 60

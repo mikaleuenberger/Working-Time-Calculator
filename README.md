@@ -272,26 +272,40 @@ Einstieg als Vorgesetzter (nach Schritt 4):
 
 ---
 
-## 🧪 Testing - *in progress*
+## 🧪 Testing
 
-> 🚧 Explain what you test and how to run tests.
+### Running Tests
 
-**Test mix:**
-- Overall 12 tests
-- 6 Unit tests: e.g. subtotal calculation, discount application above CHF 50, no discount at or below threshold, total calculation
-- 3 DB tests: e.g. menu query returns seeded pizzas, saving an order persists order + order items, empty DB / empty transactions behavior
-- 3 Integration tests: e.g. checkout with one pizza creates order and invoice, checkout with multiple pizzas applies discount correctly
+```bash
+# Install pytest (if not already installed)
+pip install pytest
 
-**Template for writing test cases**
-1. Test case ID – unique identifier (e.g., TC_001)
-2. Test case title/description – What is the test about?
-3. Preconditions: Requirements before executing the test
-4. Test steps: Actions to perform
-5. Test data/input
-6. Expected result
-7. Actual result
-8. Status – pass or fail
-9. Comments – Additional notes or defect found
+# Run all tests
+pytest tests/ -v
+
+# Run with coverage
+pytest tests/ --cov=wtcalculator
+```
+
+### Test Structure
+
+```
+tests/
+├── conftest.py                 # Pytest fixtures (test database, sample users)
+├── test_time_calculator.py     # Domain logic tests (net hours, minor rules, overtime)
+├── test_time_entry_service.py  # Service layer tests (CRUD, weekly/monthly hours)
+├── test_app_controler.py      # Controller tests (validation, parsing)
+└── test_ui_employee_dashboard.py  # UI import tests, constants validation
+```
+
+### Test Coverage
+
+- **Unit tests**: Time calculation logic, date/time parsing, user validation
+- **Service tests**: TimeEntry CRUD, weekly/monthly hour calculations, approvals
+- **Controller tests**: Input validation, error handling
+- **Constants tests**: Verification of rule constants (45h weekly max, 30min break min, etc.)
+
+**Current test count**: 39 passing, 4 skipped (UI imports skipped due to NiceGUI Python 3.14 compatibility)
 
 ---
 
