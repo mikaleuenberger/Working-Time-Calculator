@@ -16,7 +16,7 @@ Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit 
 1. Als User möchte ich meine Arbeitszeit exakt eingeben (hh:mm) 
 2. Ich möchte meine Tages-, Wochen- und Monatsarbeitszeit auf dem Blatt sehen (Eingabe einzelner Tage und Auswertung der Woche oder des Monats mit bestehenden Daten) 
 3. Als User möchte ich eine Fehlermeldung in Form eines Kommentars sehen, wenn ich die gesetzliche mindest Mittagszeit unterschreite
-4. Ich möchte als User Pausen in mm eintragen können.
+4. Ich möchte als User Mittagspausen eintragen können.
 5. Ich möchte als User eine Warnmeldung als Kommentar bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist 
 6. Ich möchte mich als User bei der Verwendung des Tools mittels ID und Nachname authentifizieren 
 7. Als Vorgesetzter will ich Ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter 
@@ -24,15 +24,20 @@ Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit 
 
 ## 🧩 Use Cases
 - Authentifizieren mittels ID und Nachnahmen
-- Arbeitszeiten und Pausen eingeben  
+- Arbeitszeiten und Mittagspausen eingeben  
 - Eingaben validieren  
 - Zeitrapport auf Wochen- und Monatsbasis ausgeben  
 - Kommentare bei Regelverletzungen anzeigen
 - Unterschiedliche Menüs für Mitarbeiter und Vorgesetzte
 
+
 ### Main Use Cases
 - Zeit erfassen (Mitarbeiter)  
 - Zeiterfassung überprüfen (Vorgesetzter)  
+
+-> im Diagramm wird nur die UC-Gruppe der Zeiterfassung beschrieben:
+
+![UC](wtcalculator/docs/ui-images/UC_Zeiterfassung.png)
 
 ### Actors
 - Mitarbeiter  
@@ -54,10 +59,9 @@ Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit 
 
 ---
 
-## 🏛️ Architecture *in progress*
+## 🏛️ Architecture
 
-![UML Class Diagram](wtcalculator/docs/ui-images/UML-diagram.png)
-
+![UML Klassendiagramm](wtcalculator/docs/ui-images/Klassendiagramm.jpg)
 ---
 ### Layers
 ---
@@ -105,7 +109,7 @@ MonthlyReport und WorkTimeResult dienen als einfache Rückgabeobjekte für Repor
 
 ![ER Diagram](wtcalculator/docs/ui-images/ER_Modell.png)
 
-The application uses **SQLModel** to map domain objects to a SQLite database.
+The application uses **SQLAlchemy** to map domain objects to a SQLite database.
 
 ### Entities
 - `Mitarbeiter`
@@ -155,7 +159,7 @@ Die Applikation interagiert mit dem User via browser. Users können:
 
 - **time input validation:** Die Arbeitszeit darf nur im Format hh:mm erfasst werden
 
-- **break validation:** Der user gibt seine Pausenzeiten in mm ein. Ohne Mittagspause wird das gesetzliche Minimum von 30min abgezogen, ausser es wird Nachtarbeit erkannt
+- **break validation:** Der user gibt seine Mittagszeiten ein. Ohne Mittagspause wird das gesetzliche Minimum von 30min abgezogen, ausser es wird Nachtarbeit erkannt
 
 - **work time validation:** Die vorgesehene Arbeitszeit ist 42h. Alles darüber gilt als Überstunden. Nicht vorgesehen aber nicht verboten sind Überstunden ab 45h
 
@@ -163,9 +167,12 @@ Die Applikation interagiert mit dem User via browser. Users können:
 
 ---
 
-### 3. Database Management *in progress*
+### 3. Database Management
 
-All relevant data is managed via an ORM (e.g. SQLModel or SQLAlchemy). For the pizza example this includes users, pizzas, and orders.
+- Wir nutzen SQLAlchemy als ORM Framework
+- In jedem unserer Services werden Python-Objekte erstellt und diese in Datenbank-Sessions übergeben 
+- Auslesen der Daten wird mit ORM-Syntax umgesetzt und die Daten werden über Attribute der Klassen gefiltert
+- Mit xy.approved generieren wir in unseren Services automatische Updates über die Attribute der Objekte
 
 ---
 
@@ -177,43 +184,49 @@ All relevant data is managed via an ORM (e.g. SQLModel or SQLAlchemy). For the p
 - Keine externen libraries
 
 ### Libraries Used
-- `datetime: datetime, timedelta`: benutzt für Datums- und Zeiteingaben und für berechnen des Deltas
-- `re`: benutzt für die Input Validierung
-- `csv`: benutzt um .csv files zu lesen oder zu schreiben
-- `json`: benutzt um users.json file zu lesen
-- `shutil`: benutzt um Dateien zwischen Ordner "geprüft" und "ungeprüft" zu verschieben
-- `pathlib: path`: benutzt um zu prüfen, ob ein file existiert und den Dateipfad zu verwalten
-- `os`: benutzt um json-file zu finden, auch wenn es in in einem anderen Pfad ist
 
-Diese libraries sind Teil der Python Standard Library, es müssen keine externen installiert werden.
-Sie wurden gewählt, um die spezifischen Anforderungen des Programms zu ermöglichen und es stabil zu machen.
+### Externe Bibliotheken (Third-Party)
 
-### 📂 Repository Structure *in progress*
-```Working-Time-Calculator/
-data folder
-reports/
-├── working / ungeprüft 			 # Ordner für ungeprüfte .csv reports
-	/Hübner
-	├── 2025_10_003_huebnerm.csv     # Beispiel eines Monatsreports (output file)
-	├── 2025_11_003_huebnerm.csv     # Beispiel eines Monatsreports (output file)
-	├── 2025_12_003_huebnerm.csv     # Beispiel eines Monatsreports (output file)
-	/Müller
-	├── 2025_10_001_muellerh.csv     # Beispiel eines Monatsreports (output file)
-	├── 2025_11_001_muellerh.csv     # Beispiel eines Monatsreports (output file)
-	├── 2025_12_001_muellerh.csv     # Beispiel eines Monatsreports (output file)
-	/Suter
-	├── 2025_10_002_suterp.csv		# Beispiel eines Monatsreports (output file)
-	├── 2025_11_002_suterp.csv     	# Beispiel eines Monatsreports (output file)
-	├── 2025_12_002_suterp.csv     	# Beispiel eines Monatsreports (output file)
-├── working / geprüft				# Ordner für geprüfte .csv reports
-programms
-├── calculate_working_time.py 		# Berechnet die Zeit, meiste Validierungen
-├── checkin.py            			# User Authentifizierung mit ID und Nachname
-├── menu1_5.py             			# Menu für die Auswahl der Interkation
-├── reports.py						# Generierung der Reports 
-├── user_admin.py					# Administration der Benutzerdaten
-├── users.json						# Dictionary mit den Benutzerdaten
-└── README.md           			# Projektbeschreibung
+* **[SQLAlchemy](https://www.sqlalchemy.org/):** Wir nutzen es als Object-Relational Mapper (ORM), um objektorientiert mit der SQLite-Datenbank zu interagieren.
+* **[NiceGUI](https://nicegui.io/):** Unser Frontend-Framework. Es ermöglicht uns, die gesamte grafische Web-Benutzeroberfläche (Dashboards, Tabellen, Dialoge) direkt und nahtlos in Python zu entwickeln.
+
+### Python Standardbibliothek (Built-ins)
+
+* **`datetime` / `time`:** Für die komplexe Logik der Arbeitszeitberechnung, Pausenabzüge und Nachtschichterkennung.
+* **`dataclasses`:** Für schlanke und unveränderliche Datenobjekte (z. B. `WorkTimeResult`, `MonthlyReport`) zur sicheren Datenübergabe zwischen den Schichten.
+* **`csv` / `io`:** Für den reibungslosen Import und die Verarbeitung der alten (Legacy) Zeiterfassungsdaten.
+* **`json`:** Für das automatische Seeding (initiale Befüllung) der Datenbank mit Benutzerdaten.
+* **`pathlib`:** Für moderne, sichere und betriebssystemunabhängige Pfad- und Dateioperationen.
+
+### 📂 Repository Struktur
+
+Das Projekt folgt einer sauberen MVC-Architektur (Model-View-Controller) mit einer dedizierten Service- und Domain-Schicht.
+
+```text
+WORKING-TIME-CALCULATOR/
+├── .devcontainer/         # Konfiguration für Entwicklungscontainer (z.B. GitHub Codespaces)
+├── .github/               # GitHub-spezifische Dateien (z.B. CI/CD Workflows)
+├── .vscode/               # Lokale Editor-Einstellungen für VS Code
+├── data/                  # Speicherort für lokale Daten (z.B. die SQLite-Datenbank)
+├── scripts/               # Hilfs- und Setup-Skripte
+├── wtcalculator/          # 📦 Hauptpaket der Anwendung
+│   ├── docs/ui-images/    # Bilder für Dokumentation, Mockups und UML-Diagramme
+│   ├── domain/            # Kern-Geschäftslogik
+│   │   └── time_calculator.py # Reine Berechnungslogik (z.B. Nettoarbeitszeit, Pausenabzug)
+│   ├── services/          # Service-Schicht (Datenbank-Interaktion & Validierung)
+│   │   ├── auth_service.py
+│   │   ├── report_service.py
+│   │   ├── time_entry_service.py
+│   │   └── user_service.py
+│   ├── app_controler.py   # Zentraler Controller (verbindet UI mit Services)
+│   ├── db.py              # Datenbank-Verbindung und Session-Management (SQLAlchemy)
+│   ├── models.py          # SQLAlchemy ORM-Modelle (Tabellenstrukturen für User & Zeiten)
+│   ├── security.py        # Sicherheitsfunktionen (Passwort-Hashing & Policies)
+│   └── webapp.py          # Präsentationsschicht (NiceGUI Views & UI-Klassen)
+├── .gitignore             # Ignorierte Dateien für die Versionskontrolle
+├── main2.py               # Bootstrapper/Einstiegspunkt der Anwendung
+├── README.md              # Hauptdokumentation des Projekts
+└── requirements.txt       # Python-Abhängigkeiten und Bibliotheken
 ```
 ### How to Run *in progress*
 
@@ -313,9 +326,9 @@ tests/
 
 | Name               | Contribution                                                                                                                                                                                                                              |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Flavio Waser       | NiceGUI UI, Anpassung des Hauptcodes auf objektorientierte Programmierung                                                                 |
-| Kristina Schaffner | Readme-File inkl. Grafiken, Passwort-Design, optimieren, Code review agent                                                                        |
-| Mika Leuenberger   | Ausführung für Mac optimieren, Programmstart |
+| Flavio Waser       | NiceGUI UI, Anpassung des Hauptcodes auf objektorientierte Programmierung, Mockups, CSV-Import                                                                 |
+| Kristina Schaffner | Readme-File und diverese Grafiken, Passwort-Design optimieren, Umbau des ersten Entwurfs nach MVC                                                                        |
+| Mika Leuenberger   | Ausführung für Mac optimieren, Programmstart, diverse Validierungen überprüfen und aktualisieren |
 
 
 ## 🤝 Contributing
