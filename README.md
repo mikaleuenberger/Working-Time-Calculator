@@ -326,9 +326,9 @@ tests/
 
 | Name               | Contribution                                                                                                                                                                                                                              |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Flavio Waser       | NiceGUI UI, Anpassung des Hauptcodes auf objektorientierte Programmierung, Mockups, CSV-Import                                                                 |
+| Flavio Waser       | NiceGUI UI, Uhr auf Login Seite, Anpassung des Hauptcodes auf objektorientierte Programmierung, Mockups, CSV-Import                                                                 |
 | Kristina Schaffner | Readme-File und diverese Grafiken, Passwort-Design optimieren, Umbau des ersten Entwurfs nach MVC                                                                        |
-| Mika Leuenberger   | Ausführung für Mac optimieren, Programmstart, diverse Validierungen überprüfen und aktualisieren |
+| Mika Leuenberger   | Programmstart, diverse Validierungen überprüfen und aktualisieren, PDF Generierung |
 
 
 ## 🤝 Contributing
