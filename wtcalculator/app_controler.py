@@ -5,7 +5,7 @@ from .services.user_service import UserService
 from .security import validate_password_policy
 from .models import User, TimeEntry
 from .services.time_entry_service import TimeEntryService
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from datetime import time as dtime
 import os
 import re
