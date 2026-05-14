@@ -174,6 +174,13 @@ if __name__ in {"__main__", "__mp_main__"}:
     except Exception as e:
         print("Warning: could not import time entries:", e)
 
+    # Seed test time entries
+    try:
+        from scripts.add_test_data import add_test_entries
+        add_test_entries()
+    except Exception as e:
+        print("Warning: could not seed test entries:", e)
+
     # Railway/Container hosting
     # - bind to 0.0.0.0 so the service is reachable from outside the container
     port = int(os.environ.get("PORT", "8080"))

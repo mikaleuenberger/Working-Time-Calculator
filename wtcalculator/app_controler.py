@@ -77,7 +77,8 @@ def _entry_dict(e) -> dict:
         'end': e.end_time.strftime('%H:%M') if e.end_time else '',
         'net': f"{e.net_hours:.2f}",
         'comment': e.comment or '',
-        'approved': '✅' if e.approved else '⏳'
+        'approved': e.approved,
+        'is_rejected': '❌ ABGELEHNT' in (e.comment or '')
     }
 
 
@@ -89,6 +90,9 @@ class AuthController:
             user_id = int(user_id_raw)
         except ValueError:
             return {"status": "error", "message": "ID muss eine Zahl sein"}
+
+        if user_id < 0:
+            return {"status": "error", "message": "ID darf nicht negativ sein"}
 
         last_name = last_name_raw.strip()
         if not last_name:
@@ -167,7 +171,7 @@ class AuthController:
             total_month = float(sum(e.net_hours for e in entries))
             return rows, total_month
 
-    def save_time_entry(self, user_id: int, date_str: str, start_s: str, end_s: str, pause_minutes: int, comment: str = ""):
+    def save_time_entry(self, user_id: int, date_str: str, start_s: str, end_s: str, pause_minutes: int, comment: str = "", pause_start: str | None = None, pause_end: str | None = None):
         work_date, error = self._parse_and_validate_date(date_str)
         if error:
             return error
@@ -184,6 +188,18 @@ class AuthController:
         if error:
             return error
 
+        # Parse lunch times if provided
+        lunch_start_t = None
+        lunch_end_t = None
+        if pause_start and pause_end:
+            lunch_start_t, lunch_end_t, error = self._parse_lunch_times(pause_start, pause_end)
+            if error:
+                return error
+            # Validate lunch interval
+            error = self._validate_lunch_interval(start_t, end_t, lunch_start_t, lunch_end_t)
+            if error:
+                return error
+
         # Pre-calculate gross hours for this entry (before break deduction)
         t_start_dt = datetime.combine(date(1900, 1, 1), start_t)
         t_end_dt = datetime.combine(date(1900, 1, 1), end_t)
@@ -191,10 +207,25 @@ class AuthController:
             t_end_dt += timedelta(days=1)
         gross_hours = (t_end_dt - t_start_dt).total_seconds() / 3600
 
-        # Check minimum break requirement (>= 6h work → >= 30min break)
+        # Calculate lunch break duration if times provided
+        lunch_minutes = 0
+        if lunch_start_t and lunch_end_t:
+            ls_dt = datetime.combine(date(1900, 1, 1), lunch_start_t)
+            le_dt = datetime.combine(date(1900, 1, 1), lunch_end_t)
+            if le_dt <= ls_dt:
+                le_dt += timedelta(days=1)
+            lunch_minutes = (le_dt - ls_dt).total_seconds() / 60
+
+        # Total break = lunch break + additional pause_minutes
+        total_break_minutes = lunch_minutes + pause_minutes
+
+        # Check minimum break requirement (>= 6h work → >= 30min break) and auto-add if needed
         notifications = []
-        if gross_hours >= MIN_BREAK_FOR_AUTO_DEDUCT_HOURS and pause_minutes < MIN_LUNCH_BREAK_MINUTES:
-            notifications.append(f"Warnung: Mindestpause ({MIN_LUNCH_BREAK_MINUTES} min) nicht erreicht!")
+        if gross_hours >= MIN_BREAK_FOR_AUTO_DEDUCT_HOURS and total_break_minutes < MIN_LUNCH_BREAK_MINUTES:
+            # Auto-add missing break time
+            missing_break = MIN_LUNCH_BREAK_MINUTES - total_break_minutes
+            total_break_minutes = MIN_LUNCH_BREAK_MINUTES
+            notifications.append(f"Mindestpause von {MIN_LUNCH_BREAK_MINUTES} min automatisch ergänzt ({int(missing_break)} min fehlten).")
 
         try:
             with session_scope() as session:
@@ -205,10 +236,13 @@ class AuthController:
                 service = TimeEntryService(session)
                 existed = service.entry_exists(user_id=user.id, work_date=work_date)
 
+                # Calculate net hours for weekly check (using total break)
+                net_hours_for_check = max(0, gross_hours - total_break_minutes / 60)
+
                 # Check weekly hours BEFORE saving (exclude current date to get existing total)
                 weekly_before = service.get_weekly_hours(
                     user_id=user.id, any_day_in_week=work_date, exclude_date=work_date)
-                projected_weekly = weekly_before + max(0, gross_hours - pause_minutes / 60)
+                projected_weekly = weekly_before + net_hours_for_check
 
                 if projected_weekly > MAX_WEEKLY_HOURS:
                     notifications.append(f"Warnung: Wochenstunden {projected_weekly:.1f}h > {int(MAX_WEEKLY_HOURS)}h!")
@@ -218,8 +252,8 @@ class AuthController:
                     work_date=work_date,
                     start_hhmm=start_s or "00:00",
                     end_hhmm=end_s or "00:00",
-                    lunch_start_hhmm=None,
-                    lunch_end_hhmm=None,
+                    lunch_start_hhmm=pause_start if lunch_start_t else None,
+                    lunch_end_hhmm=pause_end if lunch_end_t else None,
                     short_break_min=pause_minutes,
                 )
 
@@ -290,7 +324,9 @@ class AuthController:
                 'start': e.start_time.strftime('%H:%M') if e.start_time else '-',
                 'end': e.end_time.strftime('%H:%M') if e.end_time else '-',
                 'net': f"{e.net_hours:.2f} h",
-                'comment': e.comment or ''
+                'comment': e.comment or '',
+                'approved': e.approved,
+                'is_rejected': '❌ ABGELEHNT' in (e.comment or '')
             } for e in entries]
 
             return rows, total_week
@@ -314,6 +350,25 @@ class AuthController:
             service = TimeEntryService(session)
             entries = service.list_entries_for_approval(
                 user_id=user_id, year=year, month=month, approved_only=False
+            )
+
+            return [{
+                'id': e.id,
+                'user_id': e.user_id,
+                'user': f"{e.user.first_name} {e.user.last_name}",
+                'date': e.work_date.strftime('%d.%m.%Y'),
+                'hours': f"{e.net_hours:.2f} h",
+                'net_hours': e.net_hours,
+                'comment': e.comment or '',
+                'approved': e.approved
+            } for e in entries if "❌ ABGELEHNT" not in (e.comment or "")]
+
+    def get_approved_entries(self, user_id: int | None = None, year: int | None = None, month: int | None = None):
+        """Holt genehmigte Einträge mit optionalen Filtern."""
+        with session_scope() as session:
+            service = TimeEntryService(session)
+            entries = service.list_entries_for_approval(
+                user_id=user_id, year=year, month=month, approved_only=True
             )
 
             return [{
@@ -414,15 +469,35 @@ class AuthController:
         if age < AGE_MIN or age > AGE_MAX:
             return {"status": "error", "message": f"Alter muss zwischen {AGE_MIN} und {AGE_MAX} liegen."}
 
+        provided_id = user_data.get('id')
+
         with session_scope() as session:
+            # Check if we're updating an existing user
+            is_update = False
+            if provided_id is not None:
+                existing_user = session.get(User, provided_id)
+                is_update = existing_user is not None
+
+            # Check if the provided ID is already taken by another user
+            if not is_update and provided_id is not None:
+                existing_with_id = session.query(User).filter(User.id == provided_id).first()
+                if existing_with_id:
+                    return {"status": "error", "message": f"Diese ID {provided_id} ist bereits vergeben."}
+
             # Unique-Check (case-insensitive) - allow keeping own email on update
-            current_id = user_data.get('id')
             for u in session.query(User).filter(User.email.ilike(email)).all():
-                if current_id is None or u.id != current_id:
+                if not is_update or u.id != provided_id:
                     return {"status": "error", "message": "Diese E-Mail ist bereits vergeben."}
 
-            if user_data.get('id'):
-                user = session.get(User, user_data['id'])
+            if is_update:
+                user = session.get(User, provided_id)
+            elif provided_id is not None:
+                # New user with custom ID
+                user = User()
+                user.id = provided_id
+                user.password_hash = ""
+                user.must_change_password = True
+                session.add(user)
             else:
                 user = User()
                 user.password_hash = ""

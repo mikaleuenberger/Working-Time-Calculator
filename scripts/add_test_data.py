@@ -10,13 +10,13 @@ from wtcalculator.services.time_entry_service import TimeEntryService
 
 
 def add_test_entries():
-    # Get all users first
+    # Get all users first (skip supervisors)
     with session_scope() as session:
-        users = session.query(User).all()
+        users = session.query(User).filter(User.business_role != "Vorgesetzter").all()
         if not users:
-            print("No users found! Please seed users first.")
+            print("No employees found! Please seed users first.")
             return
-        print(f"Found {len(users)} users")
+        print(f"Found {len(users)} employees (excluding supervisors)")
 
     # Add entries for each user in separate sessions
     today = date.today()

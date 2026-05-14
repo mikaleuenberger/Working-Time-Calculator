@@ -259,6 +259,6 @@ class TimeEntryService:
         if approved_only is not None:
             query = query.where(TimeEntry.approved == approved_only)
 
-        query = query.order_by(TimeEntry.work_date.desc())
+        query = query.order_by(TimeEntry.work_date.asc())
 
         return list(self._session.execute(query).scalars().all())

@@ -6,6 +6,7 @@ from .ui import (
     EmployeeDashboardUI,
     SupervisorDashboardUI,
     UserAdminUI,
+    ApprovedEntriesUI,
 )
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     'EmployeeDashboardUI',
     'SupervisorDashboardUI',
     'UserAdminUI',
+    'ApprovedEntriesUI',
 ]

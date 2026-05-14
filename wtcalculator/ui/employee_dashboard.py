@@ -75,10 +75,18 @@ class EmployeeDashboardUI:
                     {'name': 'end', 'label': 'Ende', 'field': 'end'},
                     {'name': 'net',
                         'label': 'Netto (h)', 'field': 'net', 'classes': 'font-bold'},
-                    {'name': 'approved', 'label': 'Status', 'field': 'approved'},
+                    {'name': 'status', 'label': 'Status', 'field': 'status'},
                 ]
                 self.month_table = ui.table(
                     columns=columns, rows=[]).classes('w-full')
+
+                self.month_table.add_slot('body-cell-status', '''
+                    <q-td :props="props">
+                        <q-badge v-if="props.row.is_rejected" color="negative" text-color="white" label="Abgelehnt" />
+                        <q-badge v-else-if="props.row.approved" color="positive" text-color="white" label="Genehmigt" />
+                        <q-badge v-else color="warning" text-color="dark" label="Ausstehend" />
+                    </q-td>
+                ''')
                 self.refresh_month_table()
 
     def refresh_month_table(self):
@@ -188,11 +196,20 @@ class EmployeeDashboardUI:
                     {'name': 'start', 'label': 'Beginn', 'field': 'start'},
                     {'name': 'end', 'label': 'Ende', 'field': 'end'},
                     {'name': 'net', 'label': 'Netto', 'field': 'net'},
+                    {'name': 'status', 'label': 'Status', 'field': 'status'},
                     {'name': 'comment', 'label': 'Kommentar',
                         'field': 'comment', 'align': 'left'},
                 ]
                 self.week_table = ui.table(
                     columns=columns, rows=[]).classes('w-full')
+
+                self.week_table.add_slot('body-cell-status', '''
+                    <q-td :props="props">
+                        <q-badge v-if="props.row.is_rejected" color="negative" text-color="white" label="Abgelehnt" />
+                        <q-badge v-else-if="props.row.approved" color="positive" text-color="white" label="Genehmigt" />
+                        <q-badge v-else color="warning" text-color="dark" label="Ausstehend" />
+                    </q-td>
+                ''')
                 self.refresh_week_table()
 
     def render_month_panel(self):
@@ -219,12 +236,20 @@ class EmployeeDashboardUI:
                     {'name': 'start', 'label': 'Beginn', 'field': 'start'},
                     {'name': 'end', 'label': 'Ende', 'field': 'end'},
                     {'name': 'net', 'label': 'Netto', 'field': 'net'},
+                    {'name': 'status', 'label': 'Status', 'field': 'status'},
                     {'name': 'comment', 'label': 'Kommentar',
                         'field': 'comment', 'align': 'left'},
                 ]
                 self.month_overview_table = ui.table(
                     columns=columns, rows=[]).classes('w-full')
-                self.refresh_month_overview_table()
+
+                self.month_overview_table.add_slot('body-cell-status', '''
+                    <q-td :props="props">
+                        <q-badge v-if="props.row.is_rejected" color="negative" text-color="white" label="Abgelehnt" />
+                        <q-badge v-else-if="props.row.approved" color="positive" text-color="white" label="Genehmigt" />
+                        <q-badge v-else color="warning" text-color="dark" label="Ausstehend" />
+                    </q-td>
+                ''')
 
     def render_import_panel(self):
         with ui.column().classes('w-full items-center q-gutter-y-md'):
