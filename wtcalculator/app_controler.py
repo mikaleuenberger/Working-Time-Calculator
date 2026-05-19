@@ -265,9 +265,14 @@ class AuthController:
                     else:
                         entry.comment = comment
 
-                # Check for 12h overtime warning and add notification
-                if entry.comment and "Überzeit > 12h" in entry.comment:
-                    notifications.append("Warnung: Überzeit > 12h – bitte prüfen.")
+                # Check for warnings and add notifications
+                if entry.comment:
+                    if "Überzeit > 12h" in entry.comment:
+                        notifications.append("Warnung: Überzeit > 12h – bitte prüfen.")
+                    if "Maximalarbeitszeit Minderjährige: 9h" in entry.comment:
+                        notifications.append("Warnung: Maximalarbeitszeit für Minderjährige überschritten (9h).")
+                    if "Nachtarbeit" in entry.comment and "Minderjährige" in entry.comment:
+                        notifications.append("Warnung: Nachtarbeit für Minderjährige (verboten 22-6 Uhr).")
 
                 return {"status": "success", "action": "updated" if existed else "created", "notifications": notifications}
         except Exception as e:
