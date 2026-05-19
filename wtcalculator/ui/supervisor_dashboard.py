@@ -71,7 +71,10 @@ class SupervisorDashboardUI:
                     {'name': 'user', 'label': 'Mitarbeiter',
                         'field': 'user', 'align': 'left', 'sortable': True},
                     {'name': 'date', 'label': 'Datum', 'field': 'date_sort', 'sortable': True},
-                    {'name': 'hours', 'label': 'Zeit', 'field': 'hours', 'sortable': True},
+                    {'name': 'start', 'label': 'Start', 'field': 'start', 'sortable': True},
+                    {'name': 'end', 'label': 'Ende', 'field': 'end', 'sortable': True},
+                    {'name': 'break', 'label': 'Pause', 'field': 'break', 'sortable': True},
+                    {'name': 'hours', 'label': 'Netto', 'field': 'hours', 'sortable': True},
                     {'name': 'comment', 'label': 'Hinweis',
                         'field': 'comment', 'align': 'left', 'sortable': True},
                     {'name': 'approved', 'label': 'Status',
@@ -153,7 +156,7 @@ class SupervisorDashboardUI:
     def download_pdf(self):
         """Generate and download a PDF report of the filtered entries."""
         try:
-            from reportlab.lib.pagesizes import A4
+            from reportlab.lib.pagesizes import landscape, A4
             from reportlab.lib import colors
             from reportlab.lib.styles import getSampleStyleSheet
             from reportlab.lib.units import cm
@@ -174,9 +177,9 @@ class SupervisorDashboardUI:
             ui.notify('Keine Einträge für den gewählten Filter vorhanden.', color='warning')
             return
 
-        # Create PDF
+        # Create PDF (landscape)
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4))
         elements = []
         styles = getSampleStyleSheet()
 
@@ -193,7 +196,7 @@ class SupervisorDashboardUI:
         elements.append(Spacer(1, 0.5 * cm))
 
         # Table data
-        table_data = [['Datum', 'Mitarbeiter', 'Netto (h)', 'Status', 'Kommentar']]
+        table_data = [['Datum', 'Mitarbeiter', 'Start', 'Ende', 'Pause', 'Netto (h)', 'Status', 'Kommentar']]
         total_hours = 0.0
         for entry in entries:
             hours = entry.get('net_hours', 0)
@@ -202,23 +205,26 @@ class SupervisorDashboardUI:
             table_data.append([
                 entry.get('date', ''),
                 entry.get('user', ''),
+                entry.get('start', ''),
+                entry.get('end', ''),
+                entry.get('break', ''),
                 f"{hours:.2f}",
                 status,
                 entry.get('comment', '')[:30]
             ])
 
         # Add total row
-        table_data.append(['TOTAL', '', f"{total_hours:.2f}", '', ''])
+        table_data.append(['TOTAL', '', '', '', '', f"{total_hours:.2f}", '', ''])
 
         # Create table
-        table = Table(table_data, colWidths=[3*cm, 4*cm, 2.5*cm, 2.5*cm, 5*cm])
+        table = Table(table_data, colWidths=[2.5*cm, 4*cm, 1.5*cm, 1.5*cm, 1.5*cm, 2*cm, 2*cm, 5*cm])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('ALIGN', (4, 1), (4, -1), 'LEFT'),  # Kommentar left aligned
+            ('ALIGN', (7, 1), (7, -1), 'LEFT'),  # Kommentar left aligned
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
@@ -570,7 +576,10 @@ class ApprovedEntriesUI:
                     {'name': 'user', 'label': 'Mitarbeiter',
                         'field': 'user', 'align': 'left', 'sortable': True},
                     {'name': 'date', 'label': 'Datum', 'field': 'date_sort', 'sortable': True},
-                    {'name': 'hours', 'label': 'Zeit', 'field': 'hours', 'sortable': True},
+                    {'name': 'start', 'label': 'Start', 'field': 'start', 'sortable': True},
+                    {'name': 'end', 'label': 'Ende', 'field': 'end', 'sortable': True},
+                    {'name': 'break', 'label': 'Pause', 'field': 'break', 'sortable': True},
+                    {'name': 'hours', 'label': 'Netto', 'field': 'hours', 'sortable': True},
                     {'name': 'comment', 'label': 'Hinweis',
                         'field': 'comment', 'align': 'left', 'sortable': True},
                     {'name': 'approved', 'label': 'Status',
@@ -620,7 +629,7 @@ class ApprovedEntriesUI:
     def download_pdf(self):
         """Generate and download a PDF report of approved entries."""
         try:
-            from reportlab.lib.pagesizes import A4
+            from reportlab.lib.pagesizes import landscape, A4
             from reportlab.lib import colors
             from reportlab.lib.styles import getSampleStyleSheet
             from reportlab.lib.units import cm
@@ -641,9 +650,9 @@ class ApprovedEntriesUI:
             ui.notify('Keine genehmigten Einträge für den gewählten Filter vorhanden.', color='warning')
             return
 
-        # Create PDF
+        # Create PDF (landscape)
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4))
         elements = []
         styles = getSampleStyleSheet()
 
@@ -660,7 +669,7 @@ class ApprovedEntriesUI:
         elements.append(Spacer(1, 0.5 * cm))
 
         # Table data
-        table_data = [['Datum', 'Mitarbeiter', 'Netto (h)', 'Kommentar']]
+        table_data = [['Datum', 'Mitarbeiter', 'Start', 'Ende', 'Pause', 'Netto (h)', 'Kommentar']]
         total_hours = 0.0
         for entry in entries:
             hours = entry.get('net_hours', 0)
@@ -668,22 +677,25 @@ class ApprovedEntriesUI:
             table_data.append([
                 entry.get('date', ''),
                 entry.get('user', ''),
+                entry.get('start', ''),
+                entry.get('end', ''),
+                entry.get('break', ''),
                 f"{hours:.2f}",
                 entry.get('comment', '')[:30]
             ])
 
         # Add total row
-        table_data.append(['TOTAL', '', f"{total_hours:.2f}", ''])
+        table_data.append(['TOTAL', '', '', '', '', f"{total_hours:.2f}", ''])
 
         # Create table
-        table = Table(table_data, colWidths=[3*cm, 4*cm, 2.5*cm, 7.5*cm])
+        table = Table(table_data, colWidths=[2.5*cm, 4*cm, 1.5*cm, 1.5*cm, 1.5*cm, 2*cm, 5.5*cm])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('ALIGN', (3, 1), (3, -1), 'LEFT'),  # Kommentar left aligned
+            ('ALIGN', (6, 1), (6, -1), 'LEFT'),  # Kommentar left aligned
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),

@@ -312,6 +312,24 @@ class AuthController:
                 return {"status": "error", "message": "Arbeitszeit ist ungültig."}
         return None
 
+    def _calc_break_display(self, entry) -> str:
+        """Calculate total break duration from lunch break and short break."""
+        total_min = entry.short_break_min or 0
+
+        # Calculate lunch break duration if both times are set
+        if entry.lunch_start and entry.lunch_end:
+            lunch_start_dt = datetime.combine(datetime(1900, 1, 1), entry.lunch_start)
+            lunch_end_dt = datetime.combine(datetime(1900, 1, 1), entry.lunch_end)
+            if lunch_end_dt <= lunch_start_dt:
+                lunch_end_dt += timedelta(days=1)
+            lunch_min = (lunch_end_dt - lunch_start_dt).total_seconds() / 60
+            total_min += int(lunch_min)
+
+        if total_min == 0:
+            return '-'
+        hours, mins = divmod(total_min, 60)
+        return f"{hours:02d}:{mins:02d}"
+
     def get_weekly_entries(self, user_id: int, week_offset: int = 0):
         with session_scope() as session:
             service = TimeEntryService(session)
@@ -366,6 +384,9 @@ class AuthController:
                 'user': f"{e.user.first_name} {e.user.last_name}",
                 'date': e.work_date.strftime('%d.%m.%Y'),
                 'date_sort': e.work_date.isoformat(),
+                'start': e.start_time.strftime('%H:%M') if e.start_time else '',
+                'end': e.end_time.strftime('%H:%M') if e.end_time else '',
+                'break': self._calc_break_display(e),
                 'hours': f"{e.net_hours:.2f} h",
                 'net_hours': e.net_hours,
                 'comment': e.comment or '',
@@ -386,6 +407,9 @@ class AuthController:
                 'user': f"{e.user.first_name} {e.user.last_name}",
                 'date': e.work_date.strftime('%d.%m.%Y'),
                 'date_sort': e.work_date.isoformat(),
+                'start': e.start_time.strftime('%H:%M') if e.start_time else '',
+                'end': e.end_time.strftime('%H:%M') if e.end_time else '',
+                'break': self._calc_break_display(e),
                 'hours': f"{e.net_hours:.2f} h",
                 'net_hours': e.net_hours,
                 'comment': e.comment or '',
