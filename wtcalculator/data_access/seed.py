@@ -145,8 +145,9 @@ def seed_time_entries(session: Session, csv_path: Path, *, overwrite: bool = Tru
             from datetime import datetime
             work_date = datetime.strptime(datum_str, '%d.%m.%Y').date()
 
-            # Only seed entries from the first half of the month (days 1-15)
-            if work_date.day > 15:
+            # Only seed days 1-15 for the current month; historical months are seeded fully
+            today = date.today()
+            if work_date.year == today.year and work_date.month == today.month and work_date.day > 15:
                 skipped += 1
                 continue
 
