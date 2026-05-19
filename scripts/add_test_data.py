@@ -56,6 +56,10 @@ def add_test_entries():
                 while day <= last_day:
                     # Only weekdays (Mon=0 to Fri=4)
                     if day.weekday() < 5:
+                        # Skip days > 15 in the current month (save for manual entry)
+                        if day.year == today.year and day.month == today.month and day.day > 15:
+                            day += timedelta(days=1)
+                            continue
                         # Random work hours between 6 and 10
                         hours = 6 + (day.day % 4)  # 6, 7, 8, or 9 hours
 
