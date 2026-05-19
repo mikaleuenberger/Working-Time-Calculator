@@ -179,7 +179,9 @@ class SupervisorDashboardUI:
 
         # Create PDF (landscape)
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4))
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4),
+                                leftMargin=1.5*cm, rightMargin=1.5*cm,
+                                topMargin=1.5*cm, bottomMargin=1.5*cm)
         elements = []
         styles = getSampleStyleSheet()
 
@@ -187,13 +189,13 @@ class SupervisorDashboardUI:
         month_name = f"{self.current_month:02d}/{self.current_year}"
         title = Paragraph(f"Zeiterfassungs-Report {month_name}", styles['Heading1'])
         elements.append(title)
-        elements.append(Spacer(1, 0.5 * cm))
+        elements.append(Spacer(1, 0.3 * cm))
 
         # Summary info
         emp_name = "Alle Mitarbeiter" if emp_value == 'all' else self.employee_select.options.get(str(emp_value), 'Unbekannt')
         info = Paragraph(f"Mitarbeiter: {emp_name}<br/>Monat: {month_name}<br/>Einträge: {len(entries)}", styles['Normal'])
         elements.append(info)
-        elements.append(Spacer(1, 0.5 * cm))
+        elements.append(Spacer(1, 0.3 * cm))
 
         # Table data
         table_data = [['Datum', 'Mitarbeiter', 'Start', 'Ende', 'Pause', 'Netto (h)', 'Status', 'Kommentar']]
@@ -210,22 +212,23 @@ class SupervisorDashboardUI:
                 entry.get('break', ''),
                 f"{hours:.2f}",
                 status,
-                entry.get('comment', '')[:30]
+                entry.get('comment', '')[:40]
             ])
 
         # Add total row
         table_data.append(['TOTAL', '', '', '', '', f"{total_hours:.2f}", '', ''])
 
-        # Create table
-        table = Table(table_data, colWidths=[2.5*cm, 4*cm, 1.5*cm, 1.5*cm, 1.5*cm, 2*cm, 2*cm, 5*cm])
+        # Create table (use full width)
+        table = Table(table_data, colWidths=[2.8*cm, 4.5*cm, 2*cm, 2*cm, 2*cm, 2.5*cm, 2.5*cm, 8*cm])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('ALIGN', (7, 1), (7, -1), 'LEFT'),  # Kommentar left aligned
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('TOPPADDING', (0, 1), (-1, -1), 6),
             ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
             ('GRID', (0, 0), (-1, -2), 1, colors.black),
@@ -652,7 +655,9 @@ class ApprovedEntriesUI:
 
         # Create PDF (landscape)
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4))
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4),
+                                leftMargin=1.5*cm, rightMargin=1.5*cm,
+                                topMargin=1.5*cm, bottomMargin=1.5*cm)
         elements = []
         styles = getSampleStyleSheet()
 
@@ -660,13 +665,13 @@ class ApprovedEntriesUI:
         month_name = f"{self.current_month:02d}/{self.current_year}"
         title = Paragraph(f"Genehmigte Zeiterfassung {month_name}", styles['Heading1'])
         elements.append(title)
-        elements.append(Spacer(1, 0.5 * cm))
+        elements.append(Spacer(1, 0.3 * cm))
 
         # Summary info
         emp_name = "Alle Mitarbeiter" if emp_value == 'all' else self.employee_select.options.get(str(emp_value), 'Unbekannt')
         info = Paragraph(f"Mitarbeiter: {emp_name}<br/>Monat: {month_name}<br/>Einträge: {len(entries)}", styles['Normal'])
         elements.append(info)
-        elements.append(Spacer(1, 0.5 * cm))
+        elements.append(Spacer(1, 0.3 * cm))
 
         # Table data
         table_data = [['Datum', 'Mitarbeiter', 'Start', 'Ende', 'Pause', 'Netto (h)', 'Kommentar']]
@@ -681,22 +686,23 @@ class ApprovedEntriesUI:
                 entry.get('end', ''),
                 entry.get('break', ''),
                 f"{hours:.2f}",
-                entry.get('comment', '')[:30]
+                entry.get('comment', '')[:50]
             ])
 
         # Add total row
         table_data.append(['TOTAL', '', '', '', '', f"{total_hours:.2f}", ''])
 
-        # Create table
-        table = Table(table_data, colWidths=[2.5*cm, 4*cm, 1.5*cm, 1.5*cm, 1.5*cm, 2*cm, 5.5*cm])
+        # Create table (use full width)
+        table = Table(table_data, colWidths=[2.8*cm, 5*cm, 2.2*cm, 2.2*cm, 2.2*cm, 2.8*cm, 9.5*cm])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('ALIGN', (6, 1), (6, -1), 'LEFT'),  # Kommentar left aligned
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('TOPPADDING', (0, 1), (-1, -1), 6),
             ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
             ('GRID', (0, 0), (-1, -2), 1, colors.black),
