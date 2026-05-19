@@ -1,16 +1,22 @@
 from __future__ import annotations
 
+import csv
+import io
 import json
+from datetime import date, datetime
 from pathlib import Path
+from typing import Tuple
 
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
-from sqlalchemy import text
 
 from ..models import User
 from ..services.time_entry_service import TimeEntryService
-from sqlalchemy import select
-import csv
-import io
+
+
+def _parse_date_yyyy_mm_dd(value: str):
+    value = (value or "").strip()
+    return datetime.strptime(value, "%Y-%m-%d").date()
 
 
 def _normalize_user_record(raw: dict) -> dict:
@@ -20,13 +26,23 @@ def _normalize_user_record(raw: dict) -> dict:
     email = raw.get("email") or ""
     business_role = raw.get("business_role") or raw.get("role") or "Mitarbeiter"
     age = raw.get("age") if raw.get("age") is not None else raw.get("years", 18)
+    # Convert age to birthdate (approximate, assuming 18 years ago as default)
+    today = date.today()
+    birthdate = raw.get("birthdate")
+    if birthdate:
+        try:
+            birthdate = _parse_date_yyyy_mm_dd(birthdate)
+        except Exception:
+            birthdate = date(today.year - int(age), today.month, today.day)
+    else:
+        birthdate = date(today.year - int(age), today.month, today.day)
     return {
         "id": raw.get("id"),
         "first_name": str(first_name).strip(),
         "last_name": str(last_name).strip(),
         "email": str(email).strip(),
         "business_role": str(business_role).strip() or "Mitarbeiter",
-        "age": int(age) if age is not None else 18,
+        "birthdate": birthdate,
     }
 
 
@@ -71,7 +87,7 @@ def seed_users(session: Session, users_json_path: Path) -> Tuple[int, int]:
             last_name=rec["last_name"],
             email=rec["email"],
             business_role=rec["business_role"],
-            age=rec["age"],
+            birthdate=rec["birthdate"],
             password_hash="",
             must_change_password=True,
         )
@@ -128,6 +144,11 @@ def seed_time_entries(session: Session, csv_path: Path, *, overwrite: bool = Tru
 
             from datetime import datetime
             work_date = datetime.strptime(datum_str, '%d.%m.%Y').date()
+
+            # Only seed entries from the first half of the month (days 1-15)
+            if work_date.day > 15:
+                skipped += 1
+                continue
 
             start = (row.get('Arbeitsbeginn') or '').strip()
             end = (row.get('Arbeitsende') or '').strip()

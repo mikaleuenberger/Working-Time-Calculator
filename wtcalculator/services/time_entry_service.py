@@ -53,7 +53,7 @@ class TimeEntryService:
             lunch_start_hhmm=lunch_start_hhmm,
             lunch_end_hhmm=lunch_end_hhmm,
             short_break_min=short_break_min,
-            user_age=user.age,
+            user_birthdate=user.birthdate,
             work_date=work_date,
         )
 

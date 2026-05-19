@@ -70,16 +70,23 @@ class EmployeeDashboardUI:
 
                 columns = [
                     {'name': 'date', 'label': 'Datum',
-                        'field': 'date', 'align': 'left'},
-                    {'name': 'start', 'label': 'Start', 'field': 'start'},
-                    {'name': 'end', 'label': 'Ende', 'field': 'end'},
+                        'field': 'date_sort', 'align': 'left', 'sortable': True},
+                    {'name': 'start', 'label': 'Start', 'field': 'start', 'sortable': True},
+                    {'name': 'end', 'label': 'Ende', 'field': 'end', 'sortable': True},
                     {'name': 'net',
-                        'label': 'Netto (h)', 'field': 'net', 'classes': 'font-bold'},
-                    {'name': 'status', 'label': 'Status', 'field': 'status'},
+                        'label': 'Netto (h)', 'field': 'net', 'classes': 'font-bold', 'sortable': True},
+                    {'name': 'status', 'label': 'Status', 'field': 'status', 'sortable': True},
                 ]
                 self.month_table = ui.table(
-                    columns=columns, rows=[]).classes('w-full')
+                    columns=columns, rows=[],
+                    pagination={'sortBy': 'date_sort', 'descending': True}
+                ).classes('w-full')
 
+                self.month_table.add_slot('body-cell-date', '''
+                    <q-td :props="props">
+                        {{ props.row.date }}
+                    </q-td>
+                ''')
                 self.month_table.add_slot('body-cell-status', '''
                     <q-td :props="props">
                         <q-badge v-if="props.row.is_rejected" color="negative" text-color="white" label="Abgelehnt" />
@@ -192,17 +199,24 @@ class EmployeeDashboardUI:
 
                 columns = [
                     {'name': 'date', 'label': 'Datum',
-                        'field': 'date', 'align': 'left'},
-                    {'name': 'start', 'label': 'Beginn', 'field': 'start'},
-                    {'name': 'end', 'label': 'Ende', 'field': 'end'},
-                    {'name': 'net', 'label': 'Netto', 'field': 'net'},
-                    {'name': 'status', 'label': 'Status', 'field': 'status'},
+                        'field': 'date_sort', 'align': 'left', 'sortable': True},
+                    {'name': 'start', 'label': 'Beginn', 'field': 'start', 'sortable': True},
+                    {'name': 'end', 'label': 'Ende', 'field': 'end', 'sortable': True},
+                    {'name': 'net', 'label': 'Netto', 'field': 'net', 'sortable': True},
+                    {'name': 'status', 'label': 'Status', 'field': 'status', 'sortable': True},
                     {'name': 'comment', 'label': 'Kommentar',
-                        'field': 'comment', 'align': 'left'},
+                        'field': 'comment', 'align': 'left', 'sortable': True},
                 ]
                 self.week_table = ui.table(
-                    columns=columns, rows=[]).classes('w-full')
+                    columns=columns, rows=[],
+                    pagination={'sortBy': 'date_sort', 'descending': True}
+                ).classes('w-full')
 
+                self.week_table.add_slot('body-cell-date', '''
+                    <q-td :props="props">
+                        {{ props.row.date }}
+                    </q-td>
+                ''')
                 self.week_table.add_slot('body-cell-status', '''
                     <q-td :props="props">
                         <q-badge v-if="props.row.is_rejected" color="negative" text-color="white" label="Abgelehnt" />
@@ -232,17 +246,24 @@ class EmployeeDashboardUI:
 
                 columns = [
                     {'name': 'date', 'label': 'Datum',
-                        'field': 'date', 'align': 'left'},
-                    {'name': 'start', 'label': 'Beginn', 'field': 'start'},
-                    {'name': 'end', 'label': 'Ende', 'field': 'end'},
-                    {'name': 'net', 'label': 'Netto', 'field': 'net'},
-                    {'name': 'status', 'label': 'Status', 'field': 'status'},
+                        'field': 'date_sort', 'align': 'left', 'sortable': True},
+                    {'name': 'start', 'label': 'Beginn', 'field': 'start', 'sortable': True},
+                    {'name': 'end', 'label': 'Ende', 'field': 'end', 'sortable': True},
+                    {'name': 'net', 'label': 'Netto', 'field': 'net', 'sortable': True},
+                    {'name': 'status', 'label': 'Status', 'field': 'status', 'sortable': True},
                     {'name': 'comment', 'label': 'Kommentar',
-                        'field': 'comment', 'align': 'left'},
+                        'field': 'comment', 'align': 'left', 'sortable': True},
                 ]
                 self.month_overview_table = ui.table(
-                    columns=columns, rows=[]).classes('w-full')
+                    columns=columns, rows=[],
+                    pagination={'sortBy': 'date_sort', 'descending': True}
+                ).classes('w-full')
 
+                self.month_overview_table.add_slot('body-cell-date', '''
+                    <q-td :props="props">
+                        {{ props.row.date }}
+                    </q-td>
+                ''')
                 self.month_overview_table.add_slot('body-cell-status', '''
                     <q-td :props="props">
                         <q-badge v-if="props.row.is_rejected" color="negative" text-color="white" label="Abgelehnt" />

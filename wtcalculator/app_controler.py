@@ -73,6 +73,7 @@ def _entry_dict(e) -> dict:
     return {
         'id': e.id,
         'date': e.work_date.strftime('%d.%m.%y'),
+        'date_sort': e.work_date.isoformat(),
         'start': e.start_time.strftime('%H:%M') if e.start_time else '',
         'end': e.end_time.strftime('%H:%M') if e.end_time else '',
         'net': f"{e.net_hours:.2f}",
@@ -221,6 +222,7 @@ class AuthController:
 
         # Check minimum break requirement (>= 6h work → >= 30min break) and auto-add if needed
         notifications = []
+        missing_break = 0
         if gross_hours >= MIN_BREAK_FOR_AUTO_DEDUCT_HOURS and total_break_minutes < MIN_LUNCH_BREAK_MINUTES:
             # Auto-add missing break time
             missing_break = MIN_LUNCH_BREAK_MINUTES - total_break_minutes
@@ -254,7 +256,7 @@ class AuthController:
                     end_hhmm=end_s or "00:00",
                     lunch_start_hhmm=pause_start if lunch_start_t else None,
                     lunch_end_hhmm=pause_end if lunch_end_t else None,
-                    short_break_min=pause_minutes,
+                    short_break_min=pause_minutes + missing_break,
                 )
 
                 if comment:
@@ -262,6 +264,10 @@ class AuthController:
                         entry.comment = f"{comment}; {entry.comment}"
                     else:
                         entry.comment = comment
+
+                # Check for 12h overtime warning and add notification
+                if entry.comment and "Überzeit > 12h" in entry.comment:
+                    notifications.append("Warnung: Überzeit > 12h – bitte prüfen.")
 
                 return {"status": "success", "action": "updated" if existed else "created", "notifications": notifications}
         except Exception as e:
@@ -321,6 +327,7 @@ class AuthController:
             total_week = sum(e.net_hours for e in entries)
             rows = [{
                 'date': e.work_date.strftime('%a, %d.%m.'),
+                'date_sort': e.work_date.isoformat(),
                 'start': e.start_time.strftime('%H:%M') if e.start_time else '-',
                 'end': e.end_time.strftime('%H:%M') if e.end_time else '-',
                 'net': f"{e.net_hours:.2f} h",
@@ -340,6 +347,7 @@ class AuthController:
                 'id': e.id,
                 'user': f"{e.user.first_name} {e.user.last_name}",
                 'date': e.work_date.strftime('%d.%m.%Y'),
+                'date_sort': e.work_date.isoformat(),
                 'hours': f"{e.net_hours:.2f} h",
                 'comment': e.comment or ''
             } for e in entries if "❌ ABGELEHNT" not in (e.comment or "")]
@@ -357,6 +365,7 @@ class AuthController:
                 'user_id': e.user_id,
                 'user': f"{e.user.first_name} {e.user.last_name}",
                 'date': e.work_date.strftime('%d.%m.%Y'),
+                'date_sort': e.work_date.isoformat(),
                 'hours': f"{e.net_hours:.2f} h",
                 'net_hours': e.net_hours,
                 'comment': e.comment or '',
@@ -376,6 +385,7 @@ class AuthController:
                 'user_id': e.user_id,
                 'user': f"{e.user.first_name} {e.user.last_name}",
                 'date': e.work_date.strftime('%d.%m.%Y'),
+                'date_sort': e.work_date.isoformat(),
                 'hours': f"{e.net_hours:.2f} h",
                 'net_hours': e.net_hours,
                 'comment': e.comment or '',
@@ -430,7 +440,7 @@ class AuthController:
                 'last_name': u.last_name,
                 'email': u.email,
                 'role': u.business_role,
-                'age': u.age
+                'birthdate': u.birthdate
             } for u in users]
 
     def upsert_user(self, user_data: dict):
@@ -461,13 +471,14 @@ class AuthController:
         if role not in VALID_ROLES:
             return {"status": "error", "message": "Ungültige Rolle."}
 
-        try:
-            age = int(user_data.get('age'))
-        except Exception:
-            return {"status": "error", "message": "Alter muss eine ganze Zahl sein."}
-
-        if age < AGE_MIN or age > AGE_MAX:
-            return {"status": "error", "message": f"Alter muss zwischen {AGE_MIN} und {AGE_MAX} liegen."}
+        # Parse birthdate
+        birthdate = None
+        birthdate_str = user_data.get('birthdate')
+        if birthdate_str:
+            try:
+                birthdate = _parse_date_yyyy_mm_dd(birthdate_str)
+            except Exception:
+                return {"status": "error", "message": "Geburtsdatum muss im Format YYYY-MM-DD sein."}
 
         provided_id = user_data.get('id')
 
@@ -508,7 +519,7 @@ class AuthController:
             user.last_name = last_name
             user.email = email
             user.business_role = role
-            user.age = age
+            user.birthdate = birthdate
             return {"status": "success"}
 
     def reset_password(self, user_id: int):

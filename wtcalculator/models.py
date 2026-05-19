@@ -18,7 +18,7 @@ class User(Base):
     last_name: Mapped[str] = mapped_column(String(100), index=True)
     email: Mapped[str] = mapped_column(String(255), default="", unique=True, index=True)
     business_role: Mapped[str] = mapped_column(String(50), default="Mitarbeiter")
-    age: Mapped[int] = mapped_column(Integer, default=18)
+    birthdate: Mapped[date] = mapped_column(Date, default=None)
 
     password_hash: Mapped[str] = mapped_column(String(500), default="")
     must_change_password: Mapped[bool] = mapped_column(Boolean, default=True)

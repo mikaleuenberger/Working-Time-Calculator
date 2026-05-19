@@ -40,9 +40,14 @@ def calculate_net_hours_and_comment(
     lunch_start_hhmm: str | None,
     lunch_end_hhmm: str | None,
     short_break_min: int,
-    user_age: int,
+    user_birthdate: date | None,
     work_date: date,
 ) -> WorkTimeResult:
+    """Calculate age from birthdate for minor checks."""
+    user_age = 18  # default to adult if no birthdate
+    if user_birthdate:
+        age_delta = work_date - user_birthdate
+        user_age = age_delta.days // 365
     """Pure business logic for net working time calculation.
 
     Mirrors the rules from the previous CLI version:

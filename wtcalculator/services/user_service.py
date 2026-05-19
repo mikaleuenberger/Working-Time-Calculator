@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 from pathlib import Path
 
 from sqlalchemy import select
@@ -41,7 +42,7 @@ class UserService:
         last_name: str,
         email: str = "",
         business_role: str = "Mitarbeiter",
-        age: int = 18,
+        birthdate: date | None = None,
     ) -> bool:
         try:
             user_id = int(user_id)
@@ -58,12 +59,6 @@ class UserService:
         email = (email or "").strip()
         business_role = (
             business_role or "Mitarbeiter").strip() or "Mitarbeiter"
-        try:
-            age = int(age)
-        except Exception:
-            return False
-        if age < 0:
-            return False
 
         if self._session.get(User, user_id) is not None:
             return False
@@ -74,7 +69,7 @@ class UserService:
             last_name=last_name,
             email=email,
             business_role=business_role,
-            age=age,
+            birthdate=birthdate,
             password_hash="",
             must_change_password=True,
         )
@@ -89,7 +84,7 @@ class UserService:
         last_name: str,
         email: str = "",
         business_role: str = "Mitarbeiter",
-        age: int = 18,
+        birthdate: date | None = None,
     ) -> bool:
         user = self._session.get(User, int(user_id))
         if user is None:
@@ -103,18 +98,12 @@ class UserService:
         email = (email or "").strip()
         business_role = (
             business_role or "Mitarbeiter").strip() or "Mitarbeiter"
-        try:
-            age = int(age)
-        except Exception:
-            return False
-        if age < 0:
-            return False
 
         user.first_name = first_name
         user.last_name = last_name
         user.email = email
         user.business_role = business_role
-        user.age = age
+        user.birthdate = birthdate
         return True
 
     def reset_password(self, *, user_id: int) -> bool:

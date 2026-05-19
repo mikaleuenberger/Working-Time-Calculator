@@ -82,6 +82,56 @@ def init_db() -> None:
             index_name='ux_users_email',
             columns=['email'],
         )
+        _migrate_age_to_birthdate()
+
+
+def _migrate_age_to_birthdate() -> None:
+    """One-time migration: convert age INTEGER column to birthdate DATE.
+
+    This migration:
+    1. Adds birthdate column if it doesn't exist
+    2. Populates birthdate from age (approximate: today - age years)
+    3. Drops the age column using table rebuild (SQLite-compatible)
+    """
+    from datetime import date
+
+    with _engine.begin() as conn:
+        # Check if age column exists and birthdate doesn't
+        existing_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(users)")).fetchall()}
+        if 'age' not in existing_cols:
+            return  # Migration already done or column was never there
+        if 'birthdate' in existing_cols:
+            return  # Migration already done
+
+        # Add birthdate column
+        conn.execute(text("ALTER TABLE users ADD COLUMN birthdate DATE"))
+
+        # Migrate data: convert age to approximate birthdate
+        conn.execute(text("""
+            UPDATE users
+            SET birthdate = date('now', '-' || age || ' years')
+            WHERE age IS NOT NULL AND birthdate IS NULL
+        """))
+
+        # Drop age column using SQLite's rename-table approach (works on all versions)
+        conn.execute(text("ALTER TABLE users RENAME TO users_old"))
+        conn.execute(text("""
+            CREATE TABLE users (
+                id INTEGER PRIMARY KEY,
+                first_name VARCHAR(100),
+                last_name VARCHAR(100),
+                email VARCHAR(255) DEFAULT '',
+                business_role VARCHAR(50) DEFAULT 'Mitarbeiter',
+                birthdate DATE,
+                password_hash VARCHAR(500) DEFAULT '',
+                must_change_password INTEGER NOT NULL DEFAULT 1
+            )
+        """))
+        conn.execute(text("""
+            INSERT INTO users (id, first_name, last_name, email, business_role, birthdate, password_hash, must_change_password)
+            SELECT id, first_name, last_name, email, business_role, birthdate, password_hash, must_change_password FROM users_old
+        """))
+        conn.execute(text("DROP TABLE users_old"))
 
 
 def _ensure_sqlite_columns(*, table: str, columns: dict[str, str]) -> None:

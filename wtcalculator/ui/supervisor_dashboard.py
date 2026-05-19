@@ -1,7 +1,12 @@
-from datetime import date
+from datetime import date, datetime
 from io import BytesIO
 from nicegui import ui
 from ..app_controler import AuthController
+
+
+def _parse_date_yyyy_mm_dd(value):
+    value = (value or "").strip()
+    return datetime.strptime(value, "%Y-%m-%d").date()
 
 
 class SupervisorDashboardUI:
@@ -64,19 +69,25 @@ class SupervisorDashboardUI:
             with ui.card().classes('w-full q-pa-none shadow-10'):
                 columns = [
                     {'name': 'user', 'label': 'Mitarbeiter',
-                        'field': 'user', 'align': 'left'},
-                    {'name': 'date', 'label': 'Datum', 'field': 'date'},
-                    {'name': 'hours', 'label': 'Zeit', 'field': 'hours'},
+                        'field': 'user', 'align': 'left', 'sortable': True},
+                    {'name': 'date', 'label': 'Datum', 'field': 'date_sort', 'sortable': True},
+                    {'name': 'hours', 'label': 'Zeit', 'field': 'hours', 'sortable': True},
                     {'name': 'comment', 'label': 'Hinweis',
-                        'field': 'comment', 'align': 'left'},
+                        'field': 'comment', 'align': 'left', 'sortable': True},
                     {'name': 'approved', 'label': 'Status',
-                        'field': 'approved', 'align': 'center'},
+                        'field': 'approved', 'align': 'center', 'sortable': True},
                     {'name': 'actions', 'label': 'Aktionen', 'field': 'id'}
                 ]
 
-                self.table = ui.table(columns=columns, rows=[]).classes(
-                    'w-full shadow-10')
+                self.table = ui.table(columns=columns, rows=[],
+                    pagination={'sortBy': 'date_sort', 'descending': True}
+                ).classes('w-full shadow-10')
 
+                self.table.add_slot('body-cell-date', '''
+                    <q-td :props="props">
+                        {{ props.row.date }}
+                    </q-td>
+                ''')
                 self.table.add_slot('body-cell-actions', '''
                     <q-td :props="props">
                         <q-btn size="sm" color="positive" icon="check" @click="$parent.$emit('approve', props.value)" class="q-mr-xs" />
@@ -86,7 +97,7 @@ class SupervisorDashboardUI:
 
                 self.table.add_slot('body-cell-approved', '''
                     <q-td :props="props">
-                        <q-badge :color="props.value ? 'positive' : 'warning'" :label="props.value ? '✓' : '⏳'" />
+                        <q-badge :color="props.value ? 'positive' : 'warning'" :label="props.value ? '✓' : 'Ausstehend'" />
                     </q-td>
                 ''')
 
@@ -249,6 +260,7 @@ class UserAdminUI:
         self.current_user_id = current_user_id
         self.supervisor_dashboard = supervisor_dashboard
         self.selected_user_id = None
+        self.temp_birthdate = None
         self.build_ui()
 
     def build_ui(self):
@@ -258,13 +270,34 @@ class UserAdminUI:
                 ui.button('Mitarbeiter anlegen', icon='person_add',
                           on_click=self.open_user_dialog).props('color=secondary')
 
-            with ui.dialog() as self.user_dialog, ui.card().classes('w-80'):
+            with ui.dialog() as self.birthdate_picker_dialog, ui.card().classes('q-pa-md'):
+                ui.label('Geburtsdatum wählen').classes('text-h6')
+                self.birthdate_picker = ui.date().props(f'max={date.today().isoformat()}')
+                with ui.row().classes('w-full justify-end'):
+                    ui.button('Abbrechen', on_click=self.birthdate_picker_dialog.close)
+                    ui.button('OK', on_click=self._confirm_birthdate)
+
+            with ui.dialog() as self.user_dialog, ui.card().classes('w-[42rem]'):
                 ui.label('Mitarbeiterdaten').classes('text-h6')
+                # Row 1: ID (full width)
                 self.user_id_input = ui.number('ID', format='%.0f', min=1).classes('w-full')
-                self.f_name = ui.input('Vorname').classes('w-full').props('maxlength=50')
-                self.l_name = ui.input('Nachname').classes('w-full').props('maxlength=50')
+                # Row 2: First name / Last name
+                with ui.grid(columns=2).classes('w-full gap-4'):
+                    self.f_name = ui.input('Vorname').classes('w-full').props('maxlength=50')
+                    self.l_name = ui.input('Nachname').classes('w-full').props('maxlength=50')
+                # Row 3: Email (full width)
                 self.email = ui.input('E-Mail').classes('w-full').props('maxlength=254')
-                self.age = ui.number('Alter', format='%.0f', min=14, max=100).classes('w-full')
+                # Row 4: Birthdate / Age
+                with ui.grid(columns=2).classes('w-full gap-4'):
+                    with ui.column().classes('w-full'):
+                        ui.label('Geburtsdatum')
+                        with ui.row().classes('w-full items-center'):
+                            self.birthdate_input = ui.label('00.00.0000').classes('text-body1')
+                            ui.button(icon='calendar_month', on_click=self.open_birthdate_picker).props('flat round dense')
+                    with ui.column().classes('w-full'):
+                        ui.label('Alter')
+                        self.age_display = ui.label('18').classes('text-h6')
+                # Row 5: Role (full width)
                 self.role = ui.select(
                     ['Mitarbeiter', 'Vorgesetzter'], label='Rolle').classes('w-full')
 
@@ -276,14 +309,15 @@ class UserAdminUI:
 
             columns = [
                 {'name': 'name', 'label': 'Name',
-                    'field': 'full_name', 'align': 'left'},
+                    'field': 'full_name', 'align': 'left', 'sortable': True},
                 {'name': 'email', 'label': 'E-Mail',
-                    'field': 'email', 'align': 'left'},
-                {'name': 'role', 'label': 'Rolle', 'field': 'role'},
+                    'field': 'email', 'align': 'left', 'sortable': True},
+                {'name': 'role', 'label': 'Rolle', 'field': 'role', 'sortable': True},
                 {'name': 'actions', 'label': 'Aktionen', 'field': 'id'}
             ]
-            self.table = ui.table(columns=columns, rows=[]
-                                  ).classes('w-full shadow-10')
+            self.table = ui.table(columns=columns, rows=[],
+                pagination={'sortBy': 'name', 'descending': True}
+            ).classes('w-full shadow-10')
             self.table.add_slot('body-cell-actions', '''
                 <q-td :props="props">
                     <q-btn size="sm" color="primary" icon="edit" @click="$parent.$emit('edit', props.row)" class="q-mr-xs" />
@@ -304,7 +338,48 @@ class UserAdminUI:
             u['full_name'] = f"{u['first_name']} {u['last_name']}"
         self.table.rows = users
 
+    def _calc_age(self, birthdate):
+        """Calculate age from birthdate."""
+        if birthdate is None:
+            return 0
+        # Handle string format "YYYY-MM-DD"
+        if isinstance(birthdate, str):
+            birthdate = date.fromisoformat(birthdate)
+        today = date.today()
+        age = today.year - birthdate.year
+        if (today.month, today.day) < (birthdate.month, birthdate.day):
+            age -= 1
+        return age
+
+    def open_birthdate_picker(self):
+        """Open the birthdate picker dialog."""
+        self.birthdate_picker.value = self.temp_birthdate
+        self.birthdate_picker_dialog.open()
+
+    def _confirm_birthdate(self):
+        """Confirm the selected birthdate from the picker dialog."""
+        val = self.birthdate_picker.value
+        if val:
+            if isinstance(val, tuple):
+                selected = date(val[0], val[1], val[2])
+            elif isinstance(val, str):
+                selected = date.fromisoformat(val)
+            else:
+                selected = val
+
+            today = date.today()
+            if selected > today:
+                ui.notify('Geburtsdatum darf nicht in der Zukunft liegen!', color='negative')
+                return
+
+            self.temp_birthdate = selected
+            self.birthdate_input.text = selected.strftime('%d.%m.%Y')
+            self.age_display.text = str(self._calc_age(selected))
+        self.birthdate_picker_dialog.close()
+
     def open_user_dialog(self, user_data=None):
+        today = date.today()
+        default_birthdate = date(today.year - 18, today.month, today.day)
         if isinstance(user_data, dict):
             self.selected_user_id = user_data['id']
             self.user_id_input.value = user_data['id']
@@ -316,8 +391,17 @@ class UserAdminUI:
             self.l_name.update()
             self.email.value = user_data['email']
             self.email.update()
-            self.age.value = user_data['age']
-            self.age.update()
+            birthdate_val = user_data.get('birthdate')
+            if birthdate_val:
+                if isinstance(birthdate_val, str):
+                    birthdate_val = _parse_date_yyyy_mm_dd(birthdate_val)
+                self.temp_birthdate = birthdate_val
+                self.birthdate_input.text = birthdate_val.strftime('%d.%m.%Y')
+                self.age_display.text = str(self._calc_age(birthdate_val))
+            else:
+                self.temp_birthdate = default_birthdate
+                self.birthdate_input.text = default_birthdate.strftime('%d.%m.%Y')
+                self.age_display.text = '18'
             self.role.value = user_data['role']
             self.role.update()
         else:
@@ -331,8 +415,9 @@ class UserAdminUI:
             self.l_name.update()
             self.email.value = ''
             self.email.update()
-            self.age.value = 14
-            self.age.update()
+            self.temp_birthdate = default_birthdate
+            self.birthdate_input.text = default_birthdate.strftime('%d.%m.%Y')
+            self.age_display.text = '18'
             self.role.value = 'Mitarbeiter'
             self.role.update()
         self.user_dialog.open()
@@ -353,18 +438,44 @@ class UserAdminUI:
         else:
             user_id = self.selected_user_id
 
-        # Validate age
-        age = self.age.value
-        if not isinstance(age, (int, float)) or not float(age).is_integer() or age < 14 or age > 100:
-            ui.notify('Ungültiges Alter (14-100 erlaubt)', color='negative')
+        # Get birthdate value
+        birthdate_val = self.temp_birthdate
+        if isinstance(birthdate_val, date):
+            birthdate_str = birthdate_val.strftime('%Y-%m-%d')
+            birthdate_for_calc = birthdate_val
+        elif isinstance(birthdate_val, tuple):
+            # NiceGUI date picker returns (year, month, day) tuple
+            birthdate_str = f"{birthdate_val[0]}-{birthdate_val[1]:02d}-{birthdate_val[2]:02d}"
+            birthdate_for_calc = date(birthdate_val[0], birthdate_val[1], birthdate_val[2])
+        elif isinstance(birthdate_val, str):
+            # Already string format YYYY-MM-DD
+            birthdate_str = birthdate_val
+            birthdate_for_calc = date.fromisoformat(birthdate_val)
+        else:
+            # Default to 18 years ago if None
+            today = date.today()
+            birthdate_str = f"{today.year - 18}-{today.month:02d}-{today.day:02d}"
+            birthdate_for_calc = date(today.year - 18, today.month, today.day)
+
+        # Validate age (must be 14-100 years)
+        age = self._calc_age(birthdate_for_calc)
+        if age < 14 or age > 100:
+            ui.notify(f'Das Alter muss zwischen 14 und 100 Jahren liegen! (Aktuell: {age})', color='negative')
             return
+
+        # Prevent supervisor from demoting themselves
+        if user_id == self.current_user_id and self.role.value == 'Mitarbeiter':
+            current_user = next((u for u in self.controller.get_all_users() if u['id'] == user_id), None)
+            if current_user and current_user['role'] == 'Vorgesetzter':
+                ui.notify('Sie können Ihre eigene Rolle nicht auf Mitarbeiter ändern!', color='negative')
+                return
 
         data = {
             'id': user_id,
             'first_name': self.f_name.value,
             'last_name': self.l_name.value,
             'email': self.email.value,
-            'age': int(age),
+            'birthdate': birthdate_str,
             'role': self.role.value
         }
         res = self.controller.upsert_user(data)
@@ -457,18 +568,24 @@ class ApprovedEntriesUI:
             with ui.card().classes('w-full q-pa-none shadow-10'):
                 columns = [
                     {'name': 'user', 'label': 'Mitarbeiter',
-                        'field': 'user', 'align': 'left'},
-                    {'name': 'date', 'label': 'Datum', 'field': 'date'},
-                    {'name': 'hours', 'label': 'Zeit', 'field': 'hours'},
+                        'field': 'user', 'align': 'left', 'sortable': True},
+                    {'name': 'date', 'label': 'Datum', 'field': 'date_sort', 'sortable': True},
+                    {'name': 'hours', 'label': 'Zeit', 'field': 'hours', 'sortable': True},
                     {'name': 'comment', 'label': 'Hinweis',
-                        'field': 'comment', 'align': 'left'},
+                        'field': 'comment', 'align': 'left', 'sortable': True},
                     {'name': 'approved', 'label': 'Status',
-                        'field': 'approved', 'align': 'center'},
+                        'field': 'approved', 'align': 'center', 'sortable': True},
                 ]
 
-                self.table = ui.table(columns=columns, rows=[]).classes(
-                    'w-full shadow-10')
+                self.table = ui.table(columns=columns, rows=[],
+                    pagination={'sortBy': 'date_sort', 'descending': True}
+                ).classes('w-full shadow-10')
 
+                self.table.add_slot('body-cell-date', '''
+                    <q-td :props="props">
+                        {{ props.row.date }}
+                    </q-td>
+                ''')
                 self.table.add_slot('body-cell-approved', '''
                     <q-td :props="props">
                         <q-badge color="positive" label="Genehmigt" />
