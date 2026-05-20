@@ -14,16 +14,16 @@ Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit 
 
 ## 📖 User Stories
 1. Als User möchte ich meine Arbeitszeit exakt eingeben (hh:mm) 
-2. Ich möchte meine Tages-, Wochen- und Monatsarbeitszeit auf dem Blatt sehen (Eingabe einzelner Tage und Auswertung der Woche oder des Monats mit bestehenden Daten) 
+2. Ich möchte meine Tages-, Wochen- und Monatsarbeitszeit sehen (Eingabe einzelner Tage und Auswertung der Woche oder des Monats mit bestehenden Daten) 
 3. Als User möchte ich eine Fehlermeldung in Form eines Kommentars sehen, wenn ich die gesetzliche mindest Mittagszeit unterschreite
 4. Ich möchte als User Mittagspausen eintragen können.
 5. Ich möchte als User eine Warnmeldung als Kommentar bekommen, wenn meine maximale Wochenarbeitszeit 45h überschritten ist 
-6. Ich möchte mich als User bei der Verwendung des Tools mittels ID und Nachname authentifizieren 
+6. Ich möchte mich als User bei der Verwendung des Tools mittels ID, Nachname und Passwort authentifizieren 
 7. Als Vorgesetzter will ich Ende des Monats oder der Woche einen Repport erstellen können über die Arbeitszeiten meiner Mitarbeiter 
 8. Als minderjähriger Mitarbeiter darf ich nicht über 9h arbeiten und keine Nacht- oder Wochenendarbeit machen, damit die Jugendarbeitsschutzgesetze eingehalten werden. Ausnahmen können begründet vorkommen oder es können nachträglich die Zeiten korrigiert werden
 
 ## 🧩 Use Cases
-- Authentifizieren mittels ID und Nachnahmen
+- Authentifizieren mittels ID, Nachnahmen und Kennwort
 - Arbeitszeiten und Mittagspausen eingeben  
 - Eingaben validieren  
 - Zeitrapport auf Wochen- und Monatsbasis ausgeben  
@@ -109,7 +109,7 @@ MonthlyReport und WorkTimeResult dienen als einfache Rückgabeobjekte für Repor
 
 ![ER Diagram](wtcalculator/docs/ui-images/ER_Modell.png)
 
-The application uses **SQLAlchemy** to map domain objects to a SQLite database.
+Die Anwendung nutzt ***SQLAlchemy***, um Domänenobjekte einer SQLite-Datenbank zuzuordnen.
 
 ### Entities
 - `Mitarbeiter`
@@ -126,53 +126,64 @@ The application uses **SQLAlchemy** to map domain objects to a SQLite database.
 
 ---
 
-> 🚧 Requirements act as a contract: implement and demonstrate each point below.
+Jede Applikation muss die folgenden Kriterien erfüllen, um akzeptiert zu werden (siehe auch die offiziellen Projektvorgaben auf Moodle):
 
-Each app must meet the following criteria in order to be accepted (see also the official project guidelines PDF on Moodle):
-
-1. Using NiceGUI for building an interactive web app
-2. Data validation in the app
-3. Using an ORM for database management
+1. Verwendung von NiceGUI für die Entwicklung einer interaktiven Webapplikation
+2. Datenvalidierung innerhalb der Anwendung
+3. Verwendung eines ORM für das Datenbankmanagement
 
 ---
 
-### 1. Browser-based App (NiceGUI)
+### 1. Browserbasierte Applikation (NiceGUI)
 
-> 🚧 In this section, document how your project fulfills each criterion.
 
-Die Applikation interagiert mit dem User via browser. Users können:
+Die Applikation interagiert mit dem Benutzer über den Browser. Benutzer können:
 
 - Sich einloggen
-- Ihre Arbeitszeit erfassen
-- Kommentare erhalten, wenn die Arbeitszeit der Validierung widerspricht
-- Arbeitszeitrapporte generieren (bspw. für Vorgesetzte)
+- Ihre Arbeitszeiten erfassen
+- Kommentare und Hinweise erhalten, wenn Arbeitszeiten gegen Validierungsregeln verstossen
+- Arbeitszeitrapporte generieren (z. B. für Vorgesetzte)
 
-**Architecture note (per SS26 guidelines):** the browser is a thin client; UI state + business logic live on the server-side NiceGUI app.
+**Architektur-Hinweis (gemäss SS26-Richtlinien):**  
+Der Browser fungiert als Thin Client. Die Darstellung der Benutzeroberfläche erfolgt clientseitig, während der Applikationszustand sowie die Businesslogik serverseitig innerhalb der NiceGUI-Applikation verarbeitet werden.
+
+Das Projekt verwendet objektorientierte Programmierung in Python, um die Businesslogik in modulare und wiederverwendbare Komponenten zu strukturieren.
+
 
 ---
 
 ### 2. Daten Überprüfung
 
-- **user validation:** Der user gibt seine ID und Nachnamen ein. Das Check-In prüft, ob beide Eingaben gemäss jscon-Dictionary (Mitarbeiterdaten) übereinstimmen. ID muss aus Zahlen bestehen, Name aus Buchstaben
+- **Benutzervalidierung:**  
+  Der Benutzer gibt seine Mitarbeiter-ID und seinen Nachnamen ein. Der Check-In prüft, ob beide Eingaben mit den Mitarbeiterdaten aus dem JSON-Dictionary übereinstimmen. Die ID darf nur aus Zahlen bestehen.
 
-- **age validation:** Ist der User minderjährig, erhält er Kommentare bei Tagesarbeitszeit über 9h, bei Nachtarbeit (22:00-06:00) und bei Wochenendarbeit
+- **Altersvalidierung:**  
+  Ist ein Benutzer minderjährig, werden Warnungen ausgegeben bei:
+  - mehr als 9 Stunden Arbeitszeit pro Tag
+  - Nachtarbeit zwischen 22:00 und 06:00 Uhr
+  - Wochenendarbeit
 
-- **time input validation:** Die Arbeitszeit darf nur im Format hh:mm erfasst werden
+- **Zeitformat-Validierung:**  
+  Arbeitszeiten dürfen nur im Format `hh:mm` eingegeben werden.
 
-- **break validation:** Der user gibt seine Mittagszeiten ein. Ohne Mittagspause wird das gesetzliche Minimum von 30min abgezogen, ausser es wird Nachtarbeit erkannt
+- **Pausenvalidierung:**  
+  Der Benutzer gibt seine Mittagszeiten ein. Wird keine Mittagspause erfasst, wird automatisch die gesetzliche Mindestpause von 30 Minuten abgezogen, ausser es wird Nachtarbeit erkannt oder weniger als 6 Stunden Arbeitszeit erfasst.
 
-- **work time validation:** Die vorgesehene Arbeitszeit ist 42h. Alles darüber gilt als Überstunden. Nicht vorgesehen aber nicht verboten sind Überstunden ab 45h
+- **Arbeitszeitvalidierung:**  
+  Die vorgesehene Arbeitszeit beträgt 45 Stunden pro Woche. Alles darüber wird als Überzeit behandelt. Überzeiten über 45 Stunden sind nicht vorgesehen, jedoch nicht verboten.
 
-- **input validation:** Diverse Eingaben im Check-In und im Menü werden auf das Format geprüft, bei Bedarf korrigiert (Gross-/Kleinschreibung) oder bei falscher Eingabe kommentiert und zur neuen Eingabe aufgefordert
+- **Eingabevalidierung:**  
+  Diverse Eingaben im Check-In und Menü werden auf das korrekte Format geprüft, bei Bedarf korrigiert (z. B. Gross-/Kleinschreibung) oder mit einer Fehlermeldung kommentiert und zur erneuten Eingabe aufgefordert.
 
 ---
 
-### 3. Database Management
+### 3. Datenbankmanagement
 
-- Wir nutzen SQLAlchemy als ORM Framework
-- In jedem unserer Services werden Python-Objekte erstellt und diese in Datenbank-Sessions übergeben 
-- Auslesen der Daten wird mit ORM-Syntax umgesetzt und die Daten werden über Attribute der Klassen gefiltert
-- Mit xy.approved generieren wir in unseren Services automatische Updates über die Attribute der Objekte
+- Für das ORM wird SQLAlchemy verwendet.
+- Python-Objekte werden innerhalb von Datenbank-Sessions erstellt und verwaltet.
+- Datenbankabfragen werden mit ORM-Syntax anstelle von direkten SQL-Befehlen umgesetzt.
+- Daten werden über Klassenattribute und Modellbeziehungen gefiltert und ausgelesen.
+- Objektattribute wie `xy.approved` werden verwendet, um automatische Updates innerhalb der Services auszulösen.
 
 ---
 
@@ -181,7 +192,7 @@ Die Applikation interagiert mit dem User via browser. Users können:
 ### Technology
 - Python 3.x
 - Umgebung: GitHub Codespaces
-- Keine externen libraries
+- Benötigte externe Bibliotheken: SQLAlchemy, NiceGUI
 
 ### Libraries Used
 
@@ -228,60 +239,45 @@ WORKING-TIME-CALCULATOR/
 ├── README.md              # Hauptdokumentation des Projekts
 └── requirements.txt       # Python-Abhängigkeiten und Bibliotheken
 ```
-### How to Run *in progress*
+### How to Run 
 
-### 1. Project Setup
-- Python 3.13 (or the course version) is required
-- Create and activate a virtual environment:
-   - **macOS/Linux:**
-      ```bash
-      python3 -m venv .venv
-      source .venv/bin/activate
-      ```
-   - **Windows:**
-      ```bash
-      python -m venv .venv
-      .venv\Scripts\Activate
-      ```
-- Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 1. Launch
+https://working-time-calculator.up.railway.app/
 
-### 2. Configuration
-- E.g., setup of parameters or environment variables
+Öffne die URL in deinem Browser
 
-### 3. Launch
-- Start the NiceGUI app (example):
-   ```bash
-   py -m pizza_app
-   ```
-- Open the URL printed in the console.
+### 2. Login
 
-### 4. Usage
-
-Zeiterfassung als Mitarbeiter:
-1. Öffne **Visual Studio Code**
-2. Öffne **Terminal**
-3. Starte Programm:	source .venv/bin/activate python main.py
-4. Authentifizieren als Benutzer
-	#### Benutzerübersicht
+### Authentifizieren als Benutzer
+#### Benutzerübersicht
  | ID  | Nachname      | Rolle       |
  | --- | ------------- | ----------- |
  | 001 | Müller        | Mitarbeiter |
  | 002 | Suter         | Mitarbeiter |
  | 003 | Hübner		(u18) | Mitarbeiter |
  | 004 | Ackermann     | Vorgesetzer |
-5. Erfasse Arbeitszeit, lade eine .csv-Datei hoch oder schau dir deinen Rapport an
 
-Einstieg als Vorgesetzter (nach Schritt 4):
+Erfasse Arbeitszeit, lade eine .csv-Datei hoch oder schau dir deine erfassten Arbeitszeiten der Wochen / Monate an
+
+### Möglichkeiten als Vorgesetzter:
 1. Mutiere Mitarbeiter-Daten
-2. Prüfe Arbeitszeit der Mitarbeitenden
+2. Prüfe Arbeitszeit der Mitarbeitenden und gebe diese frei
+3. Erstelle Rapporte als PDF
+--- 
 
-> 🚧 Add UI screenshots of the main screens (or a short video link):
+## Screenshots der Anwendung:
 
+### Startseite
+![UI – Startseite](wtcalculator/docs/ui-images/Login_Page.png)
+
+### Startseite nach Mitarbeiter login
 ![UI – Mitarbeiter-Startseite](wtcalculator/docs/ui-images/startseite_ma1.png)
-![UI – Zeiterfassung](wtcalculator/docs/ui-images/zeiterfassung.png)
+
+### Wochenübersicht Mitarbeiter
+![UI – Wochenübersicht Mitarbeiter](wtcalculator/docs/ui-images/Wochenübersicht_Mitarbeiter.png)
+
+### Startseite nach Vorgesetzten login
+![UI – Vorgesetzter-Startseite](wtcalculator/docs/ui-images/startseite_vorgesetzter.png)
 
 ---
 
@@ -327,8 +323,8 @@ tests/
 | Name               | Contribution                                                                                                                                                                                                                              |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Flavio Waser       | NiceGUI UI, Uhr auf Login Seite, Anpassung des Hauptcodes auf objektorientierte Programmierung, Mockups, CSV-Import                                                                 |
-| Kristina Schaffner | Readme-File und diverese Grafiken, Passwort-Design optimieren, Umbau des ersten Entwurfs nach MVC                                                                        |
-| Mika Leuenberger   | Programmstart, diverse Validierungen überprüfen und aktualisieren, PDF Generierung |
+| Kristina Schaffner | NiceGUI UI, Readme-File und diverese Grafiken, Passwort-Design optimieren, Umbau des ersten Entwurfs nach MVC                                                                        |
+| Mika Leuenberger   | NiceGUI UI, Programmstart, diverse Validierungen überprüfen und aktualisieren, PDF Generierung |
 
 
 ## 🤝 Contributing
