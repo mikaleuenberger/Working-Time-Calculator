@@ -216,10 +216,12 @@ Das Projekt folgt einer sauberen MVC-Architektur (Model-View-Controller) mit ein
 ```text
 WORKING-TIME-CALCULATOR/
 ├── .devcontainer/         # Konfiguration für Entwicklungscontainer (z.B. GitHub Codespaces)
-├── .github/               # GitHub-spezifische Dateien (z.B. CI/CD Workflows)
+├── .dockerignore          # Docker-spezifische Ausschlüsse
+├── .nicegui/              # Lokale NiceGUI-Arbeitsdaten
 ├── .vscode/               # Lokale Editor-Einstellungen für VS Code
 ├── data/                  # Speicherort für lokale Daten (z.B. die SQLite-Datenbank)
 ├── scripts/               # Hilfs- und Setup-Skripte
+├── .venv/                 # Lokale Python-Umgebung
 ├── wtcalculator/          # 📦 Hauptpaket der Anwendung
 │   ├── docs/ui-images/    # Bilder für Dokumentation, Mockups und UML-Diagramme
 │   ├── domain/            # Kern-Geschäftslogik
