@@ -1,16 +1,15 @@
 """Pytest fixtures and configuration."""
+from wtcalculator.models import Base, User, TimeEntry
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
 import os
 import sys
 import tempfile
-
+from datetime import date
 import pytest
 
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from wtcalculator.models import Base, User, TimeEntry
 
 
 @pytest.fixture
@@ -39,7 +38,7 @@ def sample_user(test_session):
         last_name="User",
         email="test@example.com",
         business_role="Mitarbeiter",
-        age=25,
+        birthdate=date(2000, 1, 1),
         password_hash="",
         must_change_password=False,
     )
@@ -56,7 +55,7 @@ def minor_user(test_session):
         last_name="Worker",
         email="minor@example.com",
         business_role="Mitarbeiter",
-        age=16,
+        birthdate=date(2010, 1, 1),
         password_hash="",
         must_change_password=False,
     )
@@ -73,7 +72,7 @@ def supervisor_user(test_session):
         last_name="Visor",
         email="supervisor@example.com",
         business_role="Vorgesetzter",
-        age=35,
+        birthdate=date(1991, 1, 1),
         password_hash="",
         must_change_password=False,
     )

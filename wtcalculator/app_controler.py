@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, date
 from datetime import time as dtime
 import os
 import re
+from wtcalculator.domain.time_calculator import validate_user_age
 
 try:
     from zoneinfo import ZoneInfo
@@ -193,11 +194,13 @@ class AuthController:
         lunch_start_t = None
         lunch_end_t = None
         if pause_start and pause_end:
-            lunch_start_t, lunch_end_t, error = self._parse_lunch_times(pause_start, pause_end)
+            lunch_start_t, lunch_end_t, error = self._parse_lunch_times(
+                pause_start, pause_end)
             if error:
                 return error
             # Validate lunch interval
-            error = self._validate_lunch_interval(start_t, end_t, lunch_start_t, lunch_end_t)
+            error = self._validate_lunch_interval(
+                start_t, end_t, lunch_start_t, lunch_end_t)
             if error:
                 return error
 
@@ -227,7 +230,8 @@ class AuthController:
             # Auto-add missing break time
             missing_break = MIN_LUNCH_BREAK_MINUTES - total_break_minutes
             total_break_minutes = MIN_LUNCH_BREAK_MINUTES
-            notifications.append(f"Mindestpause von {MIN_LUNCH_BREAK_MINUTES} min automatisch ergänzt ({int(missing_break)} min fehlten).")
+            notifications.append(
+                f"Mindestpause von {MIN_LUNCH_BREAK_MINUTES} min automatisch ergänzt ({int(missing_break)} min fehlten).")
 
         try:
             with session_scope() as session:
@@ -236,10 +240,12 @@ class AuthController:
                     return {"status": "error", "message": "User nicht gefunden"}
 
                 service = TimeEntryService(session)
-                existed = service.entry_exists(user_id=user.id, work_date=work_date)
+                existed = service.entry_exists(
+                    user_id=user.id, work_date=work_date)
 
                 # Calculate net hours for weekly check (using total break)
-                net_hours_for_check = max(0, gross_hours - total_break_minutes / 60)
+                net_hours_for_check = max(
+                    0, gross_hours - total_break_minutes / 60)
 
                 # Check weekly hours BEFORE saving (exclude current date to get existing total)
                 weekly_before = service.get_weekly_hours(
@@ -247,7 +253,8 @@ class AuthController:
                 projected_weekly = weekly_before + net_hours_for_check
 
                 if projected_weekly > MAX_WEEKLY_HOURS:
-                    notifications.append(f"Warnung: Wochenstunden {projected_weekly:.1f}h > {int(MAX_WEEKLY_HOURS)}h!")
+                    notifications.append(
+                        f"Warnung: Wochenstunden {projected_weekly:.1f}h > {int(MAX_WEEKLY_HOURS)}h!")
 
                 entry = service.upsert_entry(
                     user=user,
@@ -268,11 +275,14 @@ class AuthController:
                 # Check for warnings and add notifications
                 if entry.comment:
                     if "Überzeit > 12h" in entry.comment:
-                        notifications.append("Warnung: Überzeit > 12h – bitte prüfen.")
+                        notifications.append(
+                            "Warnung: Überzeit > 12h – bitte prüfen.")
                     if "Maximalarbeitszeit Minderjährige: 9h" in entry.comment:
-                        notifications.append("Warnung: Maximalarbeitszeit für Minderjährige überschritten (9h).")
+                        notifications.append(
+                            "Warnung: Maximalarbeitszeit für Minderjährige überschritten (9h).")
                     if "Nachtarbeit" in entry.comment and "Minderjährige" in entry.comment:
-                        notifications.append("Warnung: Nachtarbeit für Minderjährige (verboten 22-6 Uhr).")
+                        notifications.append(
+                            "Warnung: Nachtarbeit für Minderjährige (verboten 22-6 Uhr).")
 
                 return {"status": "success", "action": "updated" if existed else "created", "notifications": notifications}
         except Exception as e:
@@ -323,8 +333,10 @@ class AuthController:
 
         # Calculate lunch break duration if both times are set
         if entry.lunch_start and entry.lunch_end:
-            lunch_start_dt = datetime.combine(datetime(1900, 1, 1), entry.lunch_start)
-            lunch_end_dt = datetime.combine(datetime(1900, 1, 1), entry.lunch_end)
+            lunch_start_dt = datetime.combine(
+                datetime(1900, 1, 1), entry.lunch_start)
+            lunch_end_dt = datetime.combine(
+                datetime(1900, 1, 1), entry.lunch_end)
             if lunch_end_dt <= lunch_start_dt:
                 lunch_end_dt += timedelta(days=1)
             lunch_min = (lunch_end_dt - lunch_start_dt).total_seconds() / 60
@@ -509,6 +521,10 @@ class AuthController:
             except Exception:
                 return {"status": "error", "message": "Geburtsdatum muss im Format YYYY-MM-DD sein."}
 
+            is_valid_age, error_message = validate_user_age(birthdate)
+            if not is_valid_age:
+                return {"status": "error", "message": error_message}
+
         provided_id = user_data.get('id')
 
         with session_scope() as session:
@@ -520,7 +536,8 @@ class AuthController:
 
             # Check if the provided ID is already taken by another user
             if not is_update and provided_id is not None:
-                existing_with_id = session.query(User).filter(User.id == provided_id).first()
+                existing_with_id = session.query(User).filter(
+                    User.id == provided_id).first()
                 if existing_with_id:
                     return {"status": "error", "message": f"Diese ID {provided_id} ist bereits vergeben."}
 
@@ -576,4 +593,3 @@ class AuthController:
             if not user:
                 return 0, 0, ["User nicht gefunden"]
             return service.import_csv(user=user, csv_bytes=csv_bytes, overwrite=True)
-            

@@ -20,7 +20,7 @@ class TestNetHoursCalculation:
             lunch_start_hhmm=None,
             lunch_end_hhmm=None,
             short_break_min=60,
-            user_age=25,
+            user_birthdate=date(2001, 1, 1),
             work_date=date(2026, 5, 12),
         )
         assert result.net_hours_decimal == 8.0  # 9h gross - 1h break = 8h net
@@ -33,7 +33,7 @@ class TestNetHoursCalculation:
             lunch_start_hhmm=None,
             lunch_end_hhmm=None,
             short_break_min=0,
-            user_age=25,
+            user_birthdate=date(2001, 1, 1),
             work_date=date(2026, 5, 12),
         )
         # 8h gross - 0 min break = 8h net
@@ -48,7 +48,7 @@ class TestNetHoursCalculation:
             lunch_start_hhmm=None,
             lunch_end_hhmm=None,
             short_break_min=30,
-            user_age=25,
+            user_birthdate=date(2001, 1, 1),
             work_date=date(2026, 5, 12),
         )
         # 8h gross - 0.5h break = 7.5h net
@@ -62,7 +62,7 @@ class TestNetHoursCalculation:
             lunch_start_hhmm="12:00",
             lunch_end_hhmm="13:00",
             short_break_min=0,
-            user_age=25,
+            user_birthdate=date(2001, 1, 1),
             work_date=date(2026, 5, 12),
         )
         # 9h gross - 1h lunch = 8h net
@@ -76,7 +76,7 @@ class TestNetHoursCalculation:
             lunch_start_hhmm="13:00",
             lunch_end_hhmm="12:00",
             short_break_min=0,
-            user_age=25,
+            user_birthdate=date(2001, 1, 1),
             work_date=date(2026, 5, 12),
         )
         # Should have error comment about invalid lunch
@@ -90,7 +90,7 @@ class TestNetHoursCalculation:
             lunch_start_hhmm="12:00",
             lunch_end_hhmm="12:15",
             short_break_min=0,
-            user_age=25,
+            user_birthdate=date(2001, 1, 1),
             work_date=date(2026, 5, 12),
         )
         assert "Mittag zu kurz" in result.comment
@@ -103,7 +103,7 @@ class TestNetHoursCalculation:
             lunch_start_hhmm="12:00",
             lunch_end_hhmm="16:00",
             short_break_min=0,
-            user_age=25,
+            user_birthdate=date(2001, 1, 1),
             work_date=date(2026, 5, 12),
         )
         assert "unüblich" in result.comment
@@ -120,7 +120,7 @@ class TestMinorWorkerRules:
             lunch_start_hhmm=None,
             lunch_end_hhmm=None,
             short_break_min=60,
-            user_age=16,
+            user_birthdate=date(2010, 1, 1),
             work_date=date(2026, 5, 12),
         )
         # 12h gross - 1h break = 11h net, but minor max is 9h
@@ -134,7 +134,7 @@ class TestMinorWorkerRules:
             lunch_start_hhmm=None,
             lunch_end_hhmm=None,
             short_break_min=30,
-            user_age=16,
+            user_birthdate=date(2010, 1, 1),
             work_date=date(2026, 5, 12),
         )
         assert "Nachtarbeit" in result.comment
@@ -149,7 +149,7 @@ class TestMinorWorkerRules:
             lunch_start_hhmm=None,
             lunch_end_hhmm=None,
             short_break_min=60,
-            user_age=16,
+            user_birthdate=date(2010, 1, 1),
             work_date=date(2026, 5, 16),  # Saturday
         )
         assert "Wochenendarbeit" in result.comment
@@ -163,7 +163,7 @@ class TestMinorWorkerRules:
             lunch_start_hhmm=None,
             lunch_end_hhmm=None,
             short_break_min=30,
-            user_age=16,
+            user_birthdate=date(2010, 1, 1),
             work_date=date(2026, 5, 12),  # Tuesday
         )
         # 8h gross - 0.5h break = 7.5h net, <= 9h, no warning
@@ -182,7 +182,7 @@ class TestOverTimeWarnings:
             lunch_start_hhmm=None,
             lunch_end_hhmm=None,
             short_break_min=30,
-            user_age=30,
+            user_birthdate=date(1996, 1, 1),
             work_date=date(2026, 5, 12),
         )
         # 14h gross - 0.5h break = 13.5h net
@@ -197,7 +197,7 @@ class TestOverTimeWarnings:
             lunch_start_hhmm=None,
             lunch_end_hhmm=None,
             short_break_min=60,
-            user_age=30,
+            user_birthdate=date(1996, 1, 1),
             work_date=date(2026, 5, 12),
         )
         assert result.comment == ""

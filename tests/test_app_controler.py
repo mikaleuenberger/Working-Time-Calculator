@@ -1,5 +1,7 @@
 """Unit tests for AuthController business logic."""
 import pytest
+from unittest.mock import patch
+from contextlib import contextmanager
 from datetime import date
 
 from wtcalculator.app_controler import AuthController, _parse_time_hh_mm, _parse_date_yyyy_mm_dd
@@ -39,81 +41,111 @@ class TestAuthControllerUserManagement:
         # In a real test environment, we would mock the database or use integration tests
         pass  # Skipped due to session_scope dependency
 
-    def test_upsert_user_validation_empty_names(self):
+    def test_upsert_user_validation_empty_names(self, test_session):
         """Test that upsert_user rejects empty first/last name."""
+        @contextmanager
+        def mock_session_scope():
+            yield test_session
+
         controller = AuthController()
-        result = controller.upsert_user({
-            'first_name': '',
-            'last_name': '',
-            'email': 'test@example.com',
-            'role': 'Mitarbeiter',
-            'age': 25,
-        })
+        with patch('wtcalculator.app_controler.session_scope', mock_session_scope):
+            result = controller.upsert_user({
+                'first_name': '',
+                'last_name': '',
+                'email': 'test@example.com',
+                'role': 'Mitarbeiter',
+                'birthdate': '2001-05-01',
+            })
         assert result['status'] == 'error'
         assert 'Vorname und Nachname' in result['message']
 
-    def test_upsert_user_validation_invalid_email(self):
+    def test_upsert_user_validation_invalid_email(self, test_session):
         """Test that upsert_user rejects invalid email."""
+        @contextmanager
+        def mock_session_scope():
+            yield test_session
+
         controller = AuthController()
-        result = controller.upsert_user({
-            'first_name': 'John',
-            'last_name': 'Doe',
-            'email': 'not-an-email',
-            'role': 'Mitarbeiter',
-            'age': 25,
-        })
+        with patch('wtcalculator.app_controler.session_scope', mock_session_scope):
+            result = controller.upsert_user({
+                'first_name': 'John',
+                'last_name': 'Doe',
+                'email': 'not-an-email',
+                'role': 'Mitarbeiter',
+                'birthdate': '2001-10-01',
+            })
         assert result['status'] == 'error'
         assert 'E-Mail' in result['message']
 
-    def test_upsert_user_validation_invalid_role(self):
+    def test_upsert_user_validation_invalid_role(self, test_session):
         """Test that upsert_user rejects invalid role."""
+        @contextmanager
+        def mock_session_scope():
+            yield test_session
+
         controller = AuthController()
-        result = controller.upsert_user({
-            'first_name': 'John',
-            'last_name': 'Doe',
-            'email': 'john@example.com',
-            'role': 'InvalidRole',
-            'age': 25,
-        })
+        with patch('wtcalculator.app_controler.session_scope', mock_session_scope):
+            result = controller.upsert_user({
+                'first_name': 'John',
+                'last_name': 'Doe',
+                'email': 'john@example.com',
+                'role': 'InvalidRole',
+                'birthdate': '2001-11-01',
+            })
         assert result['status'] == 'error'
         assert 'Rolle' in result['message']
 
-    def test_upsert_user_validation_age_too_young(self):
+    def test_upsert_user_validation_age_too_young(self, test_session):
         """Test that upsert_user rejects age below minimum."""
+        @contextmanager
+        def mock_session_scope():
+            yield test_session
+
         controller = AuthController()
-        result = controller.upsert_user({
-            'first_name': 'John',
-            'last_name': 'Doe',
-            'email': 'john@example.com',
-            'role': 'Mitarbeiter',
-            'age': 10,  # Below MIN_AGE of 14
-        })
+        with patch('wtcalculator.app_controler.session_scope', mock_session_scope):
+            result = controller.upsert_user({
+                'first_name': 'John',
+                'last_name': 'Doe',
+                'email': 'john@example.com',
+                'role': 'Mitarbeiter',
+                'birthdate': '2016-01-01',
+            })
         assert result['status'] == 'error'
         assert 'Alter' in result['message']
 
-    def test_upsert_user_validation_age_too_old(self):
+    def test_upsert_user_validation_age_too_old(self, test_session):
         """Test that upsert_user rejects age above maximum."""
+        @contextmanager
+        def mock_session_scope():
+            yield test_session
+
         controller = AuthController()
-        result = controller.upsert_user({
-            'first_name': 'John',
-            'last_name': 'Doe',
-            'email': 'john@example.com',
-            'role': 'Mitarbeiter',
-            'age': 120,  # Above MAX_AGE of 100
-        })
+        with patch('wtcalculator.app_controler.session_scope', mock_session_scope):
+            result = controller.upsert_user({
+                'first_name': 'John',
+                'last_name': 'Doe',
+                'email': 'john@example.com',
+                'role': 'Mitarbeiter',
+                'birthdate': '1906-05-01',
+            })
         assert result['status'] == 'error'
         assert 'Alter' in result['message']
 
-    def test_upsert_user_validation_name_too_long(self):
+    def test_upsert_user_validation_name_too_long(self, test_session):
         """Test that upsert_user rejects names exceeding max length."""
+        @contextmanager
+        def mock_session_scope():
+            yield test_session
+
         controller = AuthController()
-        result = controller.upsert_user({
-            'first_name': 'A' * 100,  # NAME_MAX_LENGTH is 50
-            'last_name': 'Doe',
-            'email': 'john@example.com',
-            'role': 'Mitarbeiter',
-            'age': 25,
-        })
+        with patch('wtcalculator.app_controler.session_scope', mock_session_scope):
+            result = controller.upsert_user({
+                'first_name': 'A' * 100,  # NAME_MAX_LENGTH is 50
+                'last_name': 'Doe',
+                'email': 'john@example.com',
+                'role': 'Mitarbeiter',
+                'birthdate': '2001-12-01',
+            })
         assert result['status'] == 'error'
         assert 'zu lang' in result['message']
 

@@ -18,6 +18,9 @@ NIGHT_START_HOUR = 22
 NIGHT_END_HOUR = 6
 MIN_LUNCH_BREAK_MIN = 30
 
+AGE_MIN = 14
+AGE_MAX = 100
+
 
 @dataclass(frozen=True)
 class WorkTimeResult:
@@ -31,6 +34,21 @@ def weekday_de(work_date: date) -> str:
 
 def _parse_hhmm(value: str) -> time:
     return datetime.strptime(value, "%H:%M").time()
+
+
+def validate_user_age(birthdate: date) -> tuple[bool, str]:
+    """Berechnet das Alter und prüft die gesetzlichen Grenzen."""
+    today = date.today()
+    # Präzise Altersberechnung (berücksichtigt Schaltjahre)
+    age = today.year - birthdate.year - \
+        ((today.month, today.day) < (birthdate.month, birthdate.day))
+
+    if age < AGE_MIN:
+        return False, "Das Alter muss mindestens 14 Jahre betragen."
+    if age > AGE_MAX:
+        return False, "Das Alter darf maximal 100 Jahre betragen."
+
+    return True, ""
 
 
 def calculate_net_hours_and_comment(
@@ -57,6 +75,13 @@ def calculate_net_hours_and_comment(
     - minors: max 9h warning + no night work (22-06) + no weekend
     """
 
+    user_age = 18  # default to adult if no birthdate
+    if user_birthdate:
+        # Präzise Altersberechnung passend zur Validierung oben
+        user_age = work_date.year - user_birthdate.year - \
+            ((work_date.month, work_date.day) <
+             (user_birthdate.month, user_birthdate.day))
+
     comment_parts: list[str] = []
 
     t_start = datetime.combine(date(1900, 1, 1), _parse_hhmm(start_hhmm))
@@ -71,16 +96,19 @@ def calculate_net_hours_and_comment(
     lunch_minutes = 0.0
 
     if lunch_start_hhmm and lunch_end_hhmm:
-        l_start = datetime.combine(date(1900, 1, 1), _parse_hhmm(lunch_start_hhmm))
+        l_start = datetime.combine(
+            date(1900, 1, 1), _parse_hhmm(lunch_start_hhmm))
         l_end = datetime.combine(date(1900, 1, 1), _parse_hhmm(lunch_end_hhmm))
 
         raw_lunch_minutes = (l_end - l_start).total_seconds() / 60
 
         if raw_lunch_minutes < 0:
-            comment_parts.append("Mittagspause: Ende vor Start – bitte korrigieren.")
+            comment_parts.append(
+                "Mittagspause: Ende vor Start – bitte korrigieren.")
             lunch_minutes = 0
         elif raw_lunch_minutes > 180:
-            comment_parts.append(f"Mittagspause > 3h – unüblich, bitte prüfen.")
+            comment_parts.append(
+                f"Mittagspause > 3h – unüblich, bitte prüfen.")
             lunch_minutes = raw_lunch_minutes
         else:
             if l_end < l_start:
@@ -88,7 +116,8 @@ def calculate_net_hours_and_comment(
             lunch_minutes = (l_end - l_start).total_seconds() / 60
 
             if lunch_minutes < MIN_LUNCH_BREAK_MIN:
-                comment_parts.append(f"Mittag zu kurz ({int(lunch_minutes)} min)")
+                comment_parts.append(
+                    f"Mittag zu kurz ({int(lunch_minutes)} min)")
 
     total_break_minutes = float(max(0, short_break_min)) + lunch_minutes
     net_seconds = gross_work_duration.total_seconds() - total_break_minutes * 60
@@ -103,7 +132,8 @@ def calculate_net_hours_and_comment(
 
     # night-work overlap (22:00 - 06:00)
     night_start = t_start.replace(hour=NIGHT_START_HOUR, minute=0, second=0)
-    night_end = t_start.replace(hour=NIGHT_END_HOUR, minute=0, second=0) + timedelta(days=1)
+    night_end = t_start.replace(
+        hour=NIGHT_END_HOUR, minute=0, second=0) + timedelta(days=1)
 
     overlap_start = max(t_start, night_start)
     overlap_end = min(t_end, night_end)

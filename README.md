@@ -53,7 +53,7 @@ Der Vorgesetzte kann die Mitarbeiter-Daten pflegen (wie bspw. das Alter), damit 
 #### Mockup: CSV Import
 ![Wireframes – Home/Transactions](wtcalculator/docs/ui-images/csv_import_rough.png)
 
-#### Mockup: Ansicht Vorgesetzter
+#### Mockup: Superior View
 ![Wireframes – Home/Transactions](wtcalculator/docs/ui-images/entries_rough.png)
 
 
@@ -78,13 +78,13 @@ Die Daten werden über ORM-Modelle gespeichert. User und TimeEntry bilden die ze
 ### Design Decisions
 ---
 
-#### Klare Trennung zwischen Daten und Logik
+#### Cleat separation between data and logic
 User, TimeEntry, MonthlyReport und WorkTimeResult enthalten Daten. Die Services übernehmen die Verarbeitung und greifen auf diese Klassen zu.
 
-#### Service-orientierte Struktur
+#### Service oriented structure
 Jede Service-Klasse hat eine klar abgegrenzte Aufgabe: Authentifizierung, Benutzerverwaltung, Zeiterfassung oder Reporting.
 
-#### Berechnungslogik ausgelagert
+#### Calculation logic outsourced
 Die Berechnung der Arbeitszeit ist im TimeCalculator gekapselt. Dadurch bleibt TimeEntryService übersichtlich und delegiert die Berechnung an eine eigene Klasse.
 
 ---
@@ -94,7 +94,7 @@ Die Berechnung der Arbeitszeit ist im TimeCalculator gekapselt. Dadurch bleibt T
 #### Service Pattern
 AuthService, UserService, TimeEntryService und ReportService kapseln die Anwendungslogik.
 
-#### Repository / DAO Ansatz über Session
+#### Repository / DAO approach via session
 Alle Services verwenden eine _session, um Daten zu lesen, zu speichern oder zu verwalten. Dadurch ist der Datenzugriff von der restlichen Logik getrennt.
 
 #### Model Relationship
@@ -134,7 +134,7 @@ Jede Applikation muss die folgenden Kriterien erfüllen, um akzeptiert zu werden
 
 ---
 
-### 1. Browserbasierte Applikation (NiceGUI)
+### 1. Browser-based Application (NiceGUI)
 
 
 Die Applikation interagiert mit dem Benutzer über den Browser. Benutzer können:
@@ -152,7 +152,7 @@ Das Projekt verwendet objektorientierte Programmierung in Python, um die Busines
 
 ---
 
-### 2. Daten Überprüfung
+### 2. Data Validation
 
 - **Benutzervalidierung:**  
   Der Benutzer gibt seine Mitarbeiter-ID und seinen Nachnamen ein. Der Check-In prüft, ob beide Eingaben mit den Mitarbeiterdaten aus dem JSON-Dictionary übereinstimmen. Die ID darf nur aus Zahlen bestehen.
@@ -177,7 +177,7 @@ Das Projekt verwendet objektorientierte Programmierung in Python, um die Busines
 
 ---
 
-### 3. Datenbankmanagement
+### 3. Database management
 
 - Für das ORM wird SQLAlchemy verwendet.
 - Python-Objekte werden innerhalb von Datenbank-Sessions erstellt und verwaltet.
@@ -196,20 +196,23 @@ Das Projekt verwendet objektorientierte Programmierung in Python, um die Busines
 
 ### Libraries Used
 
-### Externe Bibliotheken (Third-Party)
+### External Libraries (Third-Party)
 
 * **[SQLAlchemy](https://www.sqlalchemy.org/):** Wir nutzen es als Object-Relational Mapper (ORM), um objektorientiert mit der SQLite-Datenbank zu interagieren.
 * **[NiceGUI](https://nicegui.io/):** Unser Frontend-Framework. Es ermöglicht uns, die gesamte grafische Web-Benutzeroberfläche (Dashboards, Tabellen, Dialoge) direkt und nahtlos in Python zu entwickeln.
+* ** `pytest / pytest-cov`: Unser Framework für das automatisierte Unit-Testing und zur Messung der Testabdeckung (Coverage), um die Code-Qualität sicherzustellen.
 
-### Python Standardbibliothek (Built-ins)
+### Python Standard Libraries (Built-ins)
 
-* **`datetime` / `time`:** Für die komplexe Logik der Arbeitszeitberechnung, Pausenabzüge und Nachtschichterkennung.
+* **`datetime` / `date, time, timedelta`:** Für Logik der Arbeitszeitberechnung, Pausenabzüge, Nachtschichterkennung sowie die dynamische Altersberechnung anhand des Geburtsdatums.
 * **`dataclasses`:** Für schlanke und unveränderliche Datenobjekte (z. B. `WorkTimeResult`, `MonthlyReport`) zur sicheren Datenübergabe zwischen den Schichten.
+* **`unittest.mock (patch)`: Wird im Testing verwendet, um externe Abhängigkeiten (wie Datenbank-Sessions) durch kontrollierte Test-Objekte ("Mocks") zu ersetzen, was isolierte Unit-Tests ermöglicht.
+* **`contextlib (contextmanager)`: Wir bauen eigene, temporäre Kontexte (wie gemockten session_scope in den Tests) auf und wieder ab.
 * **`csv` / `io`:** Für den reibungslosen Import und die Verarbeitung der alten (Legacy) Zeiterfassungsdaten.
 * **`json`:** Für das automatische Seeding (initiale Befüllung) der Datenbank mit Benutzerdaten.
 * **`pathlib`:** Für moderne, sichere und betriebssystemunabhängige Pfad- und Dateioperationen.
 
-### 📂 Repository Struktur
+### 📂 Repository Structure
 
 Das Projekt folgt einer sauberen MVC-Architektur (Model-View-Controller) mit einer dedizierten Service- und Domain-Schicht.
 
@@ -250,7 +253,7 @@ https://working-time-calculator.up.railway.app/
 
 ### 2. Login
 
-### Authentifizieren als Benutzer
+### Authetification as Employee
 #### Benutzerübersicht
  | ID  | Nachname      | Rolle       |
  | --- | ------------- | ----------- |
@@ -261,24 +264,24 @@ https://working-time-calculator.up.railway.app/
 
 Erfasse Arbeitszeit, lade eine .csv-Datei hoch oder schau dir deine erfassten Arbeitszeiten der Wochen / Monate an
 
-### Möglichkeiten als Vorgesetzter:
+### Possibilities as Superior:
 1. Mutiere Mitarbeiter-Daten
 2. Prüfe Arbeitszeit der Mitarbeitenden und gebe diese frei
 3. Erstelle Rapporte als PDF
 --- 
 
-## Screenshots der Anwendung:
+## Screenshots of Webapp:
 
-### Startseite
+### Startpage
 ![UI – Startseite](wtcalculator/docs/ui-images/Login_Page.png)
 
-### Startseite nach Mitarbeiter login
+### Startpage after employee login
 ![UI – Mitarbeiter-Startseite](wtcalculator/docs/ui-images/startseite_ma1.png)
 
-### Wochenübersicht Mitarbeiter
+### Week-overview employee
 ![UI – Wochenübersicht Mitarbeiter](wtcalculator/docs/ui-images/Wochenübersicht_Mitarbeiter.png)
 
-### Startseite nach Vorgesetzten login
+### Superior View after Login
 ![UI – Vorgesetzter-Startseite](wtcalculator/docs/ui-images/startseite_vorgesetzter.png)
 
 ---
@@ -290,6 +293,7 @@ Erfasse Arbeitszeit, lade eine .csv-Datei hoch oder schau dir deine erfassten Ar
 ```bash
 # Install pytest (if not already installed)
 pip install pytest
+pip install pytest-cov
 
 # Run all tests
 pytest tests/ -v
