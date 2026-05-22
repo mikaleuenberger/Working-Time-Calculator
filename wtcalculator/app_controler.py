@@ -283,6 +283,9 @@ class AuthController:
                     if "Nachtarbeit" in entry.comment and "Minderjährige" in entry.comment:
                         notifications.append(
                             "Warnung: Nachtarbeit für Minderjährige (verboten 22-6 Uhr).")
+                    if "Keine Wochenendarbeit für Minderjährige" in entry.comment:
+                        notifications.append(
+                            "Warnung: Keine Wochenendarbeit für Minderjährige (Sa/So).")
 
                 return {"status": "success", "action": "updated" if existed else "created", "notifications": notifications}
         except Exception as e:
